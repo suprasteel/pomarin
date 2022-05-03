@@ -1,6 +1,7 @@
 use anyhow::*;
 use image::GenericImageView;
 use log::debug;
+use std::{ops::Deref, path::Path};
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -16,7 +17,20 @@ impl Deref for Texture {
     }
 }
 
-use std::{ops::Deref, path::Path};
+#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq)]
+pub enum TextureKind {
+    Diffuse,
+    Normal,
+}
+
+impl ToString for TextureKind {
+    fn to_string(&self) -> String {
+        match self {
+            TextureKind::Diffuse => "diffuse_texture".to_string(),
+            TextureKind::Normal => "normal_texture".to_string(),
+        }
+    }
+}
 
 impl Texture {
     pub fn load<P: AsRef<Path>>(
