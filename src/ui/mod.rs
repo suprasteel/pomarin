@@ -1,6 +1,8 @@
 pub mod egui;
 pub mod instance;
 pub mod light;
+pub mod material;
+pub mod pipeline;
 pub mod texture;
 pub mod vertex;
 
