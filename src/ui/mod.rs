@@ -1,5 +1,6 @@
 pub mod egui;
 pub mod instance;
+pub mod texture;
 pub mod vertex;
 
 pub mod event {
