@@ -11,24 +11,38 @@ fs_extra = "1.2"
 glob = "0.3"
 
 [dependencies]
-image = "0.23"
 dotenv = "0.15"
-cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
+
+# window/gpu
 winit = "0.26"
 wgpu = "0.12"
+
+# async
 pollster = "0.2"
+
+# data manipulation
+image = "0.23"
 bytemuck = { version = "1.7", features = [ "derive" ] }
+
+# math
+cgmath = "0.18"
 # glam = { version = "0.20", features = [ "debug-glam-assert" ] }
 # libm = "0.2"
+
+# serial
 serde = { version = "1.0", features = ["derive"] }
 ron = "0.7"
+
+# errors
 anyhow = "1.0"
-# derive-new = "0.5"
 
 # egui
 egui_wgpu_backend = "0.16"
 egui = "0.16"
 epi = "0.16"
 egui_winit_platform = "0.13"
+
+# obj
+tobj = "3.2"
