@@ -3,20 +3,6 @@ use image::GenericImageView;
 use log::debug;
 use std::{ops::Deref, path::Path};
 
-pub struct Texture {
-    pub texture: wgpu::Texture,
-    pub view: wgpu::TextureView,
-    pub sampler: wgpu::Sampler,
-}
-
-impl Deref for Texture {
-    type Target = wgpu::Texture;
-
-    fn deref(&self) -> &Self::Target {
-        &self.texture
-    }
-}
-
 #[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq)]
 pub enum TextureKind {
     Diffuse,
@@ -29,6 +15,20 @@ impl ToString for TextureKind {
             TextureKind::Diffuse => "diffuse_texture".to_string(),
             TextureKind::Normal => "normal_texture".to_string(),
         }
+    }
+}
+
+pub struct Texture {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+}
+
+impl Deref for Texture {
+    type Target = wgpu::Texture;
+
+    fn deref(&self) -> &Self::Target {
+        &self.texture
     }
 }
 
@@ -45,18 +45,6 @@ impl Texture {
 
         let img = image::open(path)?;
         Self::from_image(device, queue, &img, label, is_normal_map)
-    }
-
-    pub fn _from_bytes(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        bytes: &[u8],
-        label: &str,
-        is_normal_map: bool,
-    ) -> Result<Self> {
-        debug!("Loading texture from bytes");
-        let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, &img, Some(label), is_normal_map)
     }
 
     pub fn from_image(

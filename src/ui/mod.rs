@@ -1,8 +1,14 @@
 pub mod egui;
+pub mod error;
+pub mod geometry;
 pub mod instance;
 pub mod light;
 pub mod material;
+pub mod mesh;
+pub mod model;
+pub mod object;
 pub mod pipeline;
+pub mod store;
 pub mod texture;
 pub mod vertex;
 
@@ -121,3 +127,5 @@ pub mod wgpu_state {
         }
     }
 }
+
+pub mod utils {}

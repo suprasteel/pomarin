@@ -37,6 +37,7 @@ ron = "0.7"
 
 # errors
 anyhow = "1.0"
+thiserror = "1.0"
 
 # egui
 egui_wgpu_backend = "0.16"
