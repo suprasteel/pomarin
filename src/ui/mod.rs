@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod egui;
 pub mod error;
 pub mod geometry;

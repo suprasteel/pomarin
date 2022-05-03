@@ -46,6 +46,7 @@ fn main() {
     ui.run();
 }
 
+// reminder (may be removed)
 pub trait WgpuRpass {
     fn handle_event(&mut self, event: &Event<PomarinEvent>);
     fn render(
