@@ -77,7 +77,7 @@ where
             label: None,
         });
 
-        let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
@@ -91,7 +91,7 @@ where
             Self {
                 light_uniform,
                 light_buffer,
-                bind_group: light_bind_group,
+                bind_group,
             },
         )
     }

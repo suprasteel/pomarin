@@ -1,7 +1,9 @@
-use anyhow::*;
+use anyhow::Result;
 use image::GenericImageView;
 use log::debug;
 use std::{ops::Deref, path::Path};
+
+use super::error::TextureError;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq)]
 pub enum TextureKind {
@@ -9,11 +11,26 @@ pub enum TextureKind {
     Normal,
 }
 
-impl ToString for TextureKind {
-    fn to_string(&self) -> String {
-        match self {
-            TextureKind::Diffuse => "diffuse_texture".to_string(),
-            TextureKind::Normal => "normal_texture".to_string(),
+impl From<TextureKind> for String {
+    fn from(tk: TextureKind) -> Self {
+        match tk {
+            TextureKind::Diffuse => "TextureKind::Diffuse".to_string(),
+            TextureKind::Normal => "TextureKind::Normal".to_string(),
+        }
+    }
+}
+
+impl TryFrom<&str> for TextureKind {
+    type Error = TextureError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "TextureKind::Diffuse" => Ok(TextureKind::Diffuse),
+            "TextureKind::Normal" => Ok(TextureKind::Normal),
+            input => Err(TextureError::DeserialisationError {
+                type_to_deser: "TextureKind".to_string(),
+                input: input.to_string(),
+            }),
         }
     }
 }

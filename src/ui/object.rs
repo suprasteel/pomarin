@@ -8,6 +8,12 @@ pub struct Object {
     opacity: f32,
 }
 
+impl Object {
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+}
+
 impl PartialOrd for Object {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match self.model.partial_cmp(&other.model) {

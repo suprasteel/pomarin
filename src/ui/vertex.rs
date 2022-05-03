@@ -11,7 +11,7 @@ pub struct ModelVertex {
 }
 
 impl ModelVertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             // offset to use to jump from one vertex to another in the buffer
             array_stride: std::mem::size_of::<Self>() as wgpu::BufferAddress,

@@ -1,7 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use super::{
-    instance::RawInstanceTrait, mesh::Mesh, object::Object, pipeline::NamedPipeline, texture,
+    instance::RawInstanceTrait, material::Material, mesh::Mesh, model::Model, object::Object,
+    pipeline::NamedPipeline, texture::Texture,
 };
 
 pub struct Store<I>
@@ -9,7 +10,7 @@ where
     I: RawInstanceTrait,
 {
     /// wgpu textures (with sampler and view)
-    pub textures: RefCell<HashMap<String, Rc<texture::Texture>>>,
+    pub textures: RefCell<HashMap<String, Rc<Texture>>>,
     /// materials dereferencing to bing group
     pub materials: RefCell<HashMap<String, Rc<dyn Material>>>,
     /// meshes made of geometries
@@ -25,7 +26,7 @@ where
 
 impl<I> Store<I>
 where
-    I: RawInstanceTrait,
+    I: RawInstanceTrait + std::fmt::Debug,
 {
     pub fn new() -> Self {
         Self {
@@ -38,13 +39,13 @@ where
         }
     }
 
-    pub fn add_instance(&self, instance: Rc<Object>) {
+    pub fn add_object(&self, object: Rc<Object>) {
         self.objects
             .borrow_mut()
-            .insert(instance.as_ref().name.clone(), instance);
+            .insert(object.as_ref().name().clone(), object);
     }
 
-    pub fn get_instance<S: AsRef<str>>(&self, name: S) -> Option<Rc<Object>> {
+    pub fn get_object<S: AsRef<str>>(&self, name: S) -> Option<Rc<Object>> {
         self.objects
             .borrow()
             .get(&name.as_ref().to_string())
@@ -54,7 +55,7 @@ where
     pub fn add_pipeline(&self, pipeline: Rc<NamedPipeline>) {
         self.pipelines
             .borrow_mut()
-            .insert(pipeline.as_ref().name.clone(), pipeline);
+            .insert(pipeline.as_ref().name().clone(), pipeline);
     }
 
     pub fn add_mesh(&self, mesh: Rc<Mesh>) {
@@ -66,7 +67,7 @@ where
     pub fn add_entity(&self, entity: Rc<Model<I>>) {
         self.models
             .borrow_mut()
-            .insert(entity.as_ref().name.clone(), entity);
+            .insert(entity.as_ref().name().clone(), entity);
     }
 
     pub fn add_material(&self, material: Rc<dyn Material>) {
@@ -75,13 +76,13 @@ where
             .insert(material.name(), material);
     }
 
-    pub fn add_texture<S: AsRef<str>>(&self, name: S, texture: Rc<texture::Texture>) {
+    pub fn add_texture<S: AsRef<str>>(&self, name: S, texture: Rc<Texture>) {
         self.textures
             .borrow_mut()
             .insert(name.as_ref().to_string(), texture);
     }
 
-    pub fn get_texture<S: AsRef<str>>(&self, name: S) -> Option<Rc<texture::Texture>> {
+    pub fn get_texture<S: AsRef<str>>(&self, name: S) -> Option<Rc<Texture>> {
         self.textures
             .borrow()
             .get(&name.as_ref().to_string())

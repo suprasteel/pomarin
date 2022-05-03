@@ -1,6 +1,11 @@
 use std::ops::Deref;
 
-use super::material::MaterialKind;
+use super::{
+    instance::InstanceRaw,
+    material::{ColorMaterial, MaterialKind, TextureMaterial},
+    texture,
+    vertex::ModelVertex,
+};
 
 #[derive(Debug)]
 pub struct NamedPipeline {
@@ -20,6 +25,10 @@ impl NamedPipeline {
             pipeline,
             supported_material_kind: materials,
         }
+    }
+
+    pub fn name(&self) -> String {
+        self.name.to_string()
     }
 
     pub fn can_use(&self, material_kind: MaterialKind) -> bool {
@@ -112,7 +121,7 @@ pub fn create_textured_model_pipeline(
     });
     let shader = wgpu::ShaderModuleDescriptor {
         label: Some("Textured model shader"),
-        source: wgpu::ShaderSource::Wgsl(include_str!("texture.wgsl").into()),
+        source: wgpu::ShaderSource::Wgsl(include_str!("shaders/texture.wgsl").into()),
     };
     create_render_pipeline(
         "Textured render pipeline",
@@ -139,7 +148,7 @@ pub fn create_colored_model_pipeline(
     });
     let shader = wgpu::ShaderModuleDescriptor {
         label: Some("Colored model shader"),
-        source: wgpu::ShaderSource::Wgsl(include_str!("color.wgsl").into()),
+        source: wgpu::ShaderSource::Wgsl(include_str!("shaders/color.wgsl").into()),
     };
     create_render_pipeline(
         "Colored render pipeline",
@@ -164,7 +173,7 @@ pub fn create_light_pipeline(
     });
     let shader = wgpu::ShaderModuleDescriptor {
         label: Some("Light Shader"),
-        source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
+        source: wgpu::ShaderSource::Wgsl(include_str!("shaders/light.wgsl").into()),
     };
     create_render_pipeline(
         "Light render pipeline",

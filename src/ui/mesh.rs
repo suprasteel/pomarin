@@ -5,6 +5,7 @@ use wgpu::util::DeviceExt;
 
 use super::{geometry::Geometry, vertex::ModelVertex};
 
+/// A mesh carries geometries
 #[derive(Debug)]
 pub struct Mesh {
     pub name: String,

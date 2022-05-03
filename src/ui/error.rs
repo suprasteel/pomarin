@@ -1,49 +1,61 @@
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
-pub enum Error {
-    #[error("Trying to build material from an incomplete material: missing {field}")]
-    IncompleteMaterialBuilder { field: String },
-    //#[error("Mtl texture config {material} has no {texture} texture")]
-    //TextureNotFound { material: String, texture: String },
-    #[error("Pipeline {pipeline} not found")]
-    PipelineNotFound { pipeline: String },
-    #[error("Entity {entity} (mesh {mesh}) cannot use material {material} due to : {reason}")]
-    IncompatibleEntityMaterial {
-        entity: String,
+pub enum MaterialError {
+    #[error("Missing {field} to build material {material}")]
+    MaterialBuilderIncomplete { material: String, field: String },
+    #[error("Cannot build {type_to_deser} from {input}")]
+    DeserialisationError {
+        type_to_deser: String,
+        input: String,
+    },
+}
+
+#[derive(ThisError, Debug)]
+pub enum TextureError {
+    #[error("Cannot build {type_to_deser} from {input}")]
+    DeserialisationError {
+        type_to_deser: String,
+        input: String,
+    },
+}
+
+#[derive(ThisError, Debug)]
+pub enum ModelError {
+    #[error("Mesh {mesh} not found in store for model {model}")]
+    MeshNotFoundInStore { mesh: String, model: String },
+    #[error(
+        "Pipeline {pipeline} not found in store while trying to build {model} model description"
+    )]
+    PipelineNotFoundInStore { model: String, pipeline: String },
+    #[error("Geometry {geometry} not found in store for model {model}")]
+    GeometryNotFound { geometry: String, model: String },
+    #[error("Material {material} not found in store for model {model}")]
+    MaterialNotFoundInStore { material: String, model: String },
+    #[error("Model {model} (mesh {mesh}) cannot use material {material} due to : {reason}")]
+    IncompatibleModelMaterial {
+        model: String,
         mesh: String,
         material: String,
         reason: String,
     },
-    #[error("Mesh {geometry} not found for mesh {mesh}")]
-    MeshNotFound { mesh: String, geometry: String },
-    #[error("Material {material} not found")]
-    MaterialNotFound { material: String },
-    #[error("Mesh {name} not found")]
-    ModelNotFound { name: String },
-    #[error("Entity missing {field} to be built")]
-    EntityBuilderIncomplete { field: String },
+    #[error("Missing field {field} when trying to build {model} model description")]
+    IncompleteModelDescription { model: String, field: String },
     #[error(
-        "[EntityBuilder] Materials count ({builder_materials_count}) does not match with with models meshes count ({model_meshes_count}) for entity {entity_name} (model: {model_name})"
+        "Materials count ({descriptor_materials_count}) does not match with geometries count ({model_geometries_count}) for model {model_name} (mesh: {mesh_name})"
         )]
-    EntityMaterialsMismatch {
-        entity_name: String,
+    InvalidMaterialCount {
         model_name: String,
-        builder_materials_count: usize,
-        model_meshes_count: usize,
+        mesh_name: String,
+        descriptor_materials_count: usize,
+        model_geometries_count: usize,
     },
-    #[error("Invalid materials config for model: {reason}")]
-    EntityMaterialsInvalid { reason: String },
-}
-
-#[derive(ThisError, Debug)]
-pub enum AppError {
-    #[error("Material {material} not found in store")]
-    MaterialNotFound { material: String },
-    #[error("Mesh {name} not found in store")]
-    MeshNotFound { name: String },
-    #[error("Pipeline {pipeline} not found in store")]
-    PipelineNotFound { pipeline: String },
-    #[error("Mesh {geometry} not found for mesh {mesh}")]
-    GeometryNotFound { mesh: String, geometry: String },
+    #[error(
+        "Invalid materials configuration for model {model} using pipeline {pipeline}: {reason}"
+    )]
+    InvalidMaterialAndPipeline {
+        model: String,
+        pipeline: String,
+        reason: String,
+    },
 }

@@ -18,7 +18,6 @@ use crate::ui::{
 const APP_NAME: &'static str = "Pomarin";
 
 // used to specify logs scope
-#[cfg(debug_assertions)]
 const ENV_FILE: &str = "dev.env";
 
 fn main() {
@@ -26,7 +25,9 @@ fn main() {
         " --- Starting {} Application (loading environment from {}) --- ",
         APP_NAME, ENV_FILE
     );
+
     dotenv::from_filename(ENV_FILE).ok();
+
     env_logger::init();
     log::info!("Initialized environment and logger");
 
