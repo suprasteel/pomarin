@@ -1,4 +1,5 @@
 pub mod egui;
+pub mod instance;
 
 pub mod event {
     use std::sync::Mutex;

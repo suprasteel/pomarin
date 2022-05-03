@@ -1,4 +1,7 @@
+use std::marker::PhantomData;
+
 use cgmath::{Quaternion, Vector3};
+use wgpu::BufferAddress;
 
 pub struct CgmathInstance {
     position: cgmath::Vector3<f32>,
@@ -92,5 +95,53 @@ impl InstanceRaw {
                 },
             ],
         }
+    }
+}
+
+pub struct InstancesSystem<I>
+where
+    I: RawInstanceTrait,
+{
+    buffer: wgpu::Buffer,
+    instances_count: u32,
+    _phamtom: PhantomData<I>,
+}
+
+const MAX_INSTANCES: u64 = 10;
+
+impl<I> InstancesSystem<I>
+where
+    I: RawInstanceTrait + std::fmt::Debug,
+{
+    pub fn new(device: &wgpu::Device) -> Self {
+        let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("instances buffer"),
+            size: MAX_INSTANCES * std::mem::size_of::<I>() as BufferAddress,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let instances_count = 0;
+
+        Self {
+            buffer,
+            instances_count,
+            _phamtom: PhantomData,
+        }
+    }
+
+    pub fn buffer(&self) -> &wgpu::Buffer {
+        &self.buffer
+    }
+
+    pub fn count(&self) -> u32 {
+        self.instances_count
+    }
+
+    pub fn set_instances_raw(&mut self, mut instances: Vec<I>, queue: &wgpu::Queue) {
+        // dbg!(&instances);
+        instances.truncate(MAX_INSTANCES as usize);
+        self.instances_count = instances.len() as u32;
+        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&instances));
     }
 }
