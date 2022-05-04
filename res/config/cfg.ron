@@ -1,0 +1,16 @@
+(
+  window:
+  (
+    height:300,
+    width:400,
+    maximized:false,
+  ),
+  resources:
+  (      
+    textures_directory: "./textures",
+    meshes_directory: "./meshes",
+    models_description_cfg: "./models.ron",
+    materials_description_cfg: "./material.ron",
+  )        
+)
+

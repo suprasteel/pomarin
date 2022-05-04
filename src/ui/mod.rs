@@ -4,6 +4,7 @@ pub mod error;
 pub mod geometry;
 pub mod instance;
 pub mod light;
+pub mod loader;
 pub mod material;
 pub mod mesh;
 pub mod model;
@@ -68,6 +69,7 @@ pub mod resources {
 }
 
 pub mod wgpu_state {
+    use anyhow::Result;
     use winit::dpi::PhysicalSize;
 
     use super::instance::InstanceRaw;
@@ -142,6 +144,9 @@ pub mod wgpu_state {
             }
         }
     }
-}
 
-pub mod utils {}
+    pub trait WgpuResourceLoader {
+        type Output;
+        fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output>;
+    }
+}

@@ -27,7 +27,7 @@ impl Display for TextureDescriptor {
         };
         write!(
             f,
-            "TextureDescriptor \"{}\" of type {} from {:?}",
+            "TextureDescriptor:\"{}\" of type {} from {:?}",
             self.name, k, self.path
         )
     }

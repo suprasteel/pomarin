@@ -1,3 +1,4 @@
+mod settings;
 mod ui;
 
 use std::{sync::Arc, thread, time::Duration};

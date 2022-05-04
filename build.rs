@@ -13,12 +13,16 @@ fn main() -> Result<()> {
     let mut copy_options = CopyOptions::new();
     copy_options.overwrite = true;
     let mut paths_to_copy = Vec::new();
-    paths_to_copy.push("res/");
+    paths_to_copy.push("res/config/cfg.ron");
+    paths_to_copy.push("res/config/materials.ron");
+    paths_to_copy.push("res/config/meshes.ron");
+    paths_to_copy.push("res/meshes");
+    paths_to_copy.push("res/textures");
     copy_items(&paths_to_copy, out_dir.clone(), &copy_options)?;
 
     let conf_path = String::from(
         Path::new(&out_dir)
-            .join("res/cfg.ron")
+            .join("res/config/cfg.ron")
             .to_owned()
             .to_str()
             .unwrap_or(""),

@@ -249,6 +249,12 @@ impl ToString for TextureMaterial {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+pub enum MaterialDescriptor {
+    Texture(TextureMaterialDescriptor),
+    Color(ColorMaterialDescriptor),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct TextureMaterialDescriptor {
     name: String,
     diffuse_texture: TextureDescriptor,

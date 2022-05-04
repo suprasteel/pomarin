@@ -62,6 +62,11 @@ impl Mesh {
     }
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub enum MeshSource {
+    Obj(String),
+}
+
 /// # Describe a mesh.
 ///
 /// ## Example:
@@ -79,6 +84,7 @@ impl Mesh {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct MeshDescriptor {
     name: String,
+    file_name: MeshSource,
     geometries: Vec<GeometryDescriptor>,
 }
 
@@ -95,6 +101,50 @@ impl MeshDescriptor {
         &self.geometries
     }
 }
+
+/* impl WgpuResourceLoader for MeshDescriptor {
+    type Output = Mesh;
+
+    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+
+        let (obj_models, _) = tobj::load_obj(
+            path.as_ref(),
+            &tobj::LoadOptions {
+                triangulate: true,
+                single_index: true,
+                ..Default::default()
+            },
+        )?;
+        let mut meshes = Vec::new();
+        obj_models.iter().for_each(|mesh| {
+            let mut vertices = Vec::new();
+            ModelVertex::fill_vertices_from_model(&mut vertices, &mesh);
+
+            let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
+                contents: bytemuck::cast_slice(&vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Index Buffer", path.as_ref())),
+                contents: bytemuck::cast_slice(&mesh.mesh.indices),
+                usage: wgpu::BufferUsages::INDEX,
+            });
+
+            meshes.push(Geometry {
+                name: mesh.name.to_string(),
+                vertex_buffer,
+                index_buffer,
+                num_elements: mesh.mesh.indices.len() as u32,
+            });
+        });
+
+        Result::Ok(Mesh {
+            name: name.as_ref().to_string(),
+            geometries: meshes,
+        })
+    }
+}*/
 
 impl NamedHandle<MeshName> for MeshDescriptor {
     fn named_handle(&self) -> MeshName {

@@ -40,6 +40,9 @@ pub struct ObjectsPass {
 
 impl ObjectsPass {
     fn new(wgpu: &WgpuState, window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
+        // load assets descriptions
+        // load assets
+
         let emitter = Arc::new(Emitter::new(event_loop));
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
