@@ -8,60 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use super::error::TextureError;
-
-// TODO: check both are used
-#[derive(Deserialize, Serialize, Debug)]
-pub struct TextureDescriptor {
-    name: String,
-    path: PathBuf,
-    kind: TextureKind,
-}
-
-impl Display for TextureDescriptor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let k = if self.kind == TextureKind::Diffuse {
-            "diffuse"
-        } else {
-            "normal"
-        };
-        write!(
-            f,
-            "TextureDescriptor:\"{}\" of type {} from {:?}",
-            self.name, k, self.path
-        )
-    }
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize, Serialize)]
-pub enum TextureKind {
-    Diffuse,
-    Normal,
-}
-
-impl From<TextureKind> for String {
-    fn from(tk: TextureKind) -> Self {
-        match tk {
-            TextureKind::Diffuse => "TextureKind::Diffuse".to_string(),
-            TextureKind::Normal => "TextureKind::Normal".to_string(),
-        }
-    }
-}
-
-impl TryFrom<&str> for TextureKind {
-    type Error = TextureError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "TextureKind::Diffuse" => Ok(TextureKind::Diffuse),
-            "TextureKind::Normal" => Ok(TextureKind::Normal),
-            input => Err(TextureError::DeserialisationError {
-                type_to_deser: "TextureKind".to_string(),
-                input: input.to_string(),
-            }),
-        }
-    }
-}
+use super::{error::TextureError, wgpu_state::WgpuResourceLoader};
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -198,6 +145,67 @@ impl Texture {
             texture,
             view,
             sampler,
+        }
+    }
+}
+
+// TODO: check both are used
+#[derive(Deserialize, Serialize, Debug)]
+pub struct TextureDescriptor {
+    name: String,
+    path: PathBuf,
+    kind: TextureKind,
+}
+
+impl WgpuResourceLoader for TextureDescriptor {
+    type Output = Texture;
+
+    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+        wgpu_state.store.get_texture(self.name);
+    }
+}
+
+impl Display for TextureDescriptor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let k = if self.kind == TextureKind::Diffuse {
+            "diffuse"
+        } else {
+            "normal"
+        };
+        write!(
+            f,
+            "TextureDescriptor:\"{}\" of type {} from {:?}",
+            self.name, k, self.path
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize, Serialize)]
+pub enum TextureKind {
+    Diffuse,
+    Normal,
+}
+
+impl From<TextureKind> for String {
+    fn from(tk: TextureKind) -> Self {
+        match tk {
+            TextureKind::Diffuse => "TextureKind::Diffuse".to_string(),
+            TextureKind::Normal => "TextureKind::Normal".to_string(),
+        }
+    }
+}
+
+impl TryFrom<&str> for TextureKind {
+    type Error = TextureError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "TextureKind::Diffuse" => Ok(TextureKind::Diffuse),
+            "TextureKind::Normal" => Ok(TextureKind::Normal),
+            input => Err(TextureError::DeserialisationError {
+                type_to_deser: "TextureKind".to_string(),
+                input: input.to_string(),
+            }),
         }
     }
 }

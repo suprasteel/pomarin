@@ -45,6 +45,10 @@ where
             .insert(object.as_ref().name().clone(), object);
     }
 
+    pub fn contains_object(&self, object: &str) -> bool {
+        self.objects.borrow().contains_key(object)
+    }
+
     pub fn get_object<S: AsRef<str>>(&self, name: S) -> Option<Rc<Object>> {
         self.objects
             .borrow()
@@ -64,10 +68,18 @@ where
             .insert(mesh.as_ref().name.clone(), mesh);
     }
 
-    pub fn add_entity(&self, entity: Rc<Model<I>>) {
+    pub fn contains_mesh(&self, mesh: &str) -> bool {
+        self.meshes.borrow().contains_key(mesh)
+    }
+
+    pub fn add_model(&self, entity: Rc<Model<I>>) {
         self.models
             .borrow_mut()
             .insert(entity.as_ref().name().clone(), entity);
+    }
+
+    pub fn contains_model(&self, model: &str) -> bool {
+        self.models.borrow().contains_key(model)
     }
 
     pub fn add_material(&self, material: Rc<dyn Material>) {
@@ -76,10 +88,18 @@ where
             .insert(material.name(), material);
     }
 
+    pub fn contains_material(&self, material: &str) -> bool {
+        self.materials.borrow().contains_key(material)
+    }
+
     pub fn add_texture<S: AsRef<str>>(&self, name: S, texture: Rc<Texture>) {
         self.textures
             .borrow_mut()
             .insert(name.as_ref().to_string(), texture);
+    }
+
+    pub fn contains_texture(&self, texture: &str) -> bool {
+        self.textures.borrow().contains_key(texture)
     }
 
     pub fn get_texture<S: AsRef<str>>(&self, name: S) -> Option<Rc<Texture>> {
@@ -111,18 +131,18 @@ where
             .map(|m| m.clone())
     }
 
-    pub fn get_entity<S: AsRef<str>>(&self, name: S) -> Option<Rc<Model<I>>> {
+    pub fn get_model<S: AsRef<str>>(&self, name: S) -> Option<Rc<Model<I>>> {
         self.models
             .borrow()
             .get(&name.as_ref().to_string())
             .map(|m| m.clone())
     }
 
-    pub fn entities(&self) -> Vec<Rc<Model<I>>> {
+    pub fn models(&self) -> Vec<Rc<Model<I>>> {
         self.models
             .borrow()
             .iter()
-            .map(|(_name, entity)| entity.clone())
+            .map(|(_name, model)| model.clone())
             .collect()
     }
 }

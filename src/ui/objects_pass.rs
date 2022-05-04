@@ -8,6 +8,7 @@ use super::camera::{CameraSystem, CameraUpdater};
 use super::event::{Emitter, PomarinEvent};
 use super::instance::{InstanceRaw, InstancesSystem};
 use super::light::{self, LightUniform};
+use super::loader::read_mesh_descriptors;
 use super::material::MaterialKind;
 use super::pipeline::{
     create_colored_model_pipeline, create_light_pipeline, create_textured_model_pipeline,
@@ -40,6 +41,9 @@ pub struct ObjectsPass {
 impl ObjectsPass {
     fn new(wgpu: &WgpuState, window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         // load assets descriptions
+
+        let meshes = read_mesh_descriptors(file);
+
         // load assets
 
         let emitter = Arc::new(Emitter::new(event_loop));

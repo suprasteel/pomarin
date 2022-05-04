@@ -76,6 +76,7 @@ pub mod wgpu_state {
     use super::store::Store;
 
     pub struct WgpuState {
+        // app conf
         pub instance: wgpu::Instance,
         pub surface: wgpu::Surface,
         pub config: wgpu::SurfaceConfiguration,

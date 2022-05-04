@@ -17,39 +17,12 @@ pub struct MeshBuf {
     pub geometries: Vec<GeometryBuf>,
 }
 
-/// Describe the kind of file/source is a mesh from
-#[derive(Deserialize, Serialize, Debug)]
-pub enum VerticesSource {
-    Obj(String),
-    // one day...
-}
-
-impl VerticesSource {
-    fn load(&self) -> Result<Vec<GeometryVertices<ModelVertex>>> {
-        match &self {
-            VerticesSource::Obj(path) => {
-                let (obj_models, _) = tobj::load_obj(
-                    path,
-                    &tobj::LoadOptions {
-                        triangulate: true,
-                        single_index: true,
-                        ..Default::default()
-                    },
-                )?;
-                Ok(obj_models
-                    .into_iter()
-                    .map(|tobj_model| {
-                        let mut vertices = Vec::new();
-                        ModelVertex::fill_vertices_from_model(&mut vertices, &tobj_model);
-                        GeometryVertices::new(&tobj_model.name, vertices, tobj_model.mesh.indices)
-                    })
-                    .collect())
-            }
-        }
-    }
-}
-
 /// # Describe a mesh.
+///
+/// Used to describe mesh configuration.
+/// This struct can be deserialized.
+/// It implements WgpuResourceLoader to instanciate a MeshBuf using wgpu state and being usable to
+/// render the mesh.
 ///
 /// ## Example:
 ///
@@ -85,6 +58,7 @@ impl MeshDescriptor {
     }
 }
 
+/// Builds the MeshBuf using wgpu state
 impl WgpuResourceLoader for MeshDescriptor {
     type Output = MeshBuf;
 
@@ -109,12 +83,6 @@ impl WgpuResourceLoader for MeshDescriptor {
     }
 }
 
-impl NamedHandle<MeshName> for MeshDescriptor {
-    fn name(&self) -> MeshName {
-        MeshName(self.name.clone())
-    }
-}
-
 #[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
 pub struct MeshName(String);
 
@@ -129,5 +97,43 @@ impl Deref for MeshName {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl NamedHandle<MeshName> for MeshDescriptor {
+    fn name(&self) -> MeshName {
+        MeshName(self.name.clone())
+    }
+}
+
+/// Describe the kind of file/source is a mesh from
+#[derive(Deserialize, Serialize, Debug)]
+pub enum VerticesSource {
+    Obj(String),
+    // one day...
+}
+
+impl VerticesSource {
+    fn load(&self) -> Result<Vec<GeometryVertices<ModelVertex>>> {
+        match &self {
+            VerticesSource::Obj(path) => {
+                let (obj_models, _) = tobj::load_obj(
+                    path,
+                    &tobj::LoadOptions {
+                        triangulate: true,
+                        single_index: true,
+                        ..Default::default()
+                    },
+                )?;
+                Ok(obj_models
+                    .into_iter()
+                    .map(|tobj_model| {
+                        let mut vertices = Vec::new();
+                        ModelVertex::fill_vertices_from_model(&mut vertices, &tobj_model);
+                        GeometryVertices::new(&tobj_model.name, vertices, tobj_model.mesh.indices)
+                    })
+                    .collect())
+            }
+        }
     }
 }
