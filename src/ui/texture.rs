@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use image::GenericImageView;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -161,7 +161,16 @@ impl WgpuResourceLoader for TextureDescriptor {
     type Output = Texture;
 
     fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
-        wgpu_state.store.get_texture(self.name);
+        if wgpu_state.store.contains_texture(&self.name) {
+            return Err(anyhow!("texture {} already loaded", &self.name));
+        }
+        let is_normal_map = self.kind == TextureKind::Normal;
+        Texture::load(
+            &wgpu_state.device,
+            &wgpu_state.queue,
+            self.path,
+            is_normal_map,
+        )
     }
 }
 

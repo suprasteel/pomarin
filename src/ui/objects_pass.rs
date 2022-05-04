@@ -42,7 +42,7 @@ impl ObjectsPass {
     fn new(wgpu: &WgpuState, window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         // load assets descriptions
 
-        let meshes = read_mesh_descriptors(file);
+        //        let meshes = read_mesh_descriptors(file);
 
         // load assets
 

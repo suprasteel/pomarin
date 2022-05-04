@@ -12,6 +12,8 @@ use super::{
     pipeline::NamedPipeline,
     resources::NamedHandle,
     store::Store,
+    wgpu_state::WgpuResourceLoader,
+    wgpu_state::WgpuResourceLoader,
 };
 
 impl<I> Ord for Model<I>
@@ -199,6 +201,14 @@ pub struct ModelDescriptor {
     geometries_materials: Vec<(GeometryName, MaterialName)>,
     pipeline_name: String, // Pipeline descriptor...
 }
+
+/*impl WgpuResourceLoader for ModelDescriptor {
+    type Output = Model<I>;
+
+    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+        todo!()
+    }
+}*/
 
 impl ModelDescriptor {
     /// builds a model from resources available in store (resources have to be loaded beforehand)
