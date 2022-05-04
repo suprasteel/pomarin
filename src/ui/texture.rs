@@ -168,7 +168,7 @@ impl WgpuResourceLoader for TextureDescriptor {
         Texture::load(
             &wgpu_state.device,
             &wgpu_state.queue,
-            self.path,
+            &self.path,
             is_normal_map,
         )
     }

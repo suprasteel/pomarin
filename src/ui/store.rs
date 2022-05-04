@@ -1,14 +1,11 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use super::{
-    instance::RawInstanceTrait, material::Material, mesh::MeshBuf, model::Model, object::Object,
-    pipeline::NamedPipeline, texture::Texture,
+    material::Material, mesh::MeshBuf, model::Model, object::Object, pipeline::NamedPipeline,
+    texture::Texture,
 };
 
-pub struct Store<I>
-where
-    I: RawInstanceTrait,
-{
+pub struct Store {
     /// wgpu textures (with sampler and view)
     pub textures: RefCell<HashMap<String, Rc<Texture>>>,
     /// materials dereferencing to bing group
@@ -19,15 +16,12 @@ where
     pub pipelines: RefCell<HashMap<String, Rc<NamedPipeline>>>,
     // TODO: rename to models
     /// an aggregation of material and geometries (via mesh)
-    pub models: RefCell<HashMap<String, Rc<Model<I>>>>,
+    pub models: RefCell<HashMap<String, Rc<Model>>>,
     /// objects instances describing whick entity to use
     pub objects: RefCell<HashMap<String, Rc<Object>>>,
 }
 
-impl<I> Store<I>
-where
-    I: RawInstanceTrait + std::fmt::Debug,
-{
+impl Store {
     pub fn new() -> Self {
         Self {
             textures: RefCell::new(HashMap::new()),
@@ -72,7 +66,7 @@ where
         self.meshes.borrow().contains_key(mesh)
     }
 
-    pub fn add_model(&self, entity: Rc<Model<I>>) {
+    pub fn add_model(&self, entity: Rc<Model>) {
         self.models
             .borrow_mut()
             .insert(entity.as_ref().name().clone(), entity);
@@ -131,14 +125,14 @@ where
             .map(|m| m.clone())
     }
 
-    pub fn get_model<S: AsRef<str>>(&self, name: S) -> Option<Rc<Model<I>>> {
+    pub fn get_model<S: AsRef<str>>(&self, name: S) -> Option<Rc<Model>> {
         self.models
             .borrow()
             .get(&name.as_ref().to_string())
             .map(|m| m.clone())
     }
 
-    pub fn models(&self) -> Vec<Rc<Model<I>>> {
+    pub fn models(&self) -> Vec<Rc<Model>> {
         self.models
             .borrow()
             .iter()

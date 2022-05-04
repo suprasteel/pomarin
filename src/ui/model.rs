@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{ops::Deref, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -12,14 +12,9 @@ use super::{
     pipeline::NamedPipeline,
     resources::NamedHandle,
     store::Store,
-    wgpu_state::WgpuResourceLoader,
-    wgpu_state::WgpuResourceLoader,
 };
 
-impl<I> Ord for Model<I>
-where
-    I: RawInstanceTrait,
-{
+impl Ord for Model {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.pipeline.as_ref().name() != other.pipeline.as_ref().name() {
             self.pipeline
@@ -32,17 +27,11 @@ where
     }
 }
 
-impl<I> std::cmp::Eq for Model<I>
-where
-    I: RawInstanceTrait,
-{
+impl Eq for Model {
     fn assert_receiver_is_total_eq(&self) {}
 }
 
-impl<I> PartialOrd for Model<I>
-where
-    I: RawInstanceTrait,
-{
+impl PartialOrd for Model {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match self
             .pipeline
@@ -56,10 +45,7 @@ where
     }
 }
 
-impl<I> PartialEq for Model<I>
-where
-    I: RawInstanceTrait,
-{
+impl PartialEq for Model {
     fn eq(&self, other: &Self) -> bool {
         self.pipeline.as_ref().name() == other.pipeline.as_ref().name()
             && self.mesh.name == other.mesh.name
@@ -76,31 +62,23 @@ where
 }
 
 #[derive(Debug)]
-pub struct Model<I>
-where
-    I: RawInstanceTrait,
-{
+pub struct Model {
     name: String,
     pipeline: Rc<NamedPipeline>,
     mesh: Rc<MeshBuf>,
     materials: Vec<Rc<dyn Material>>,
     //TODO: delete both
-    instances: RefCell<Vec<I>>,
-    instances_names: RefCell<Vec<String>>,
+    /*instances: RefCell<Vec<I>>,
+    instances_names: RefCell<Vec<String>>,*/
 }
 
-impl<I> Model<I>
-where
-    I: RawInstanceTrait + std::fmt::Debug,
-{
+impl Model {
     pub fn new(name: String, pipeline: Rc<NamedPipeline>, mesh: Rc<MeshBuf>) -> Self {
         Self {
             name,
             pipeline,
             mesh,
             materials: vec![],
-            instances: RefCell::new(vec![]),
-            instances_names: RefCell::new(vec![]),
         }
     }
 
@@ -108,7 +86,7 @@ where
         self.name.clone()
     }
 
-    pub fn instances_count(&self) -> u32 {
+    /*    pub fn instances_count(&self) -> u32 {
         self.instances.borrow().len() as u32
     }
 
@@ -167,7 +145,7 @@ where
             }
             None => { /* should emit err */ }
         }
-    }
+    }*/
 }
 
 /// # Describe a model.
@@ -212,7 +190,7 @@ pub struct ModelDescriptor {
 
 impl ModelDescriptor {
     /// builds a model from resources available in store (resources have to be loaded beforehand)
-    pub fn build_model_from_store_resources<I>(&self, store: &Store<I>) -> Result<Model<I>>
+    pub fn build_model_from_store_resources<I>(&self, store: &Store) -> Result<Model>
     where
         I: RawInstanceTrait + std::fmt::Debug,
     {

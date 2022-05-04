@@ -72,7 +72,6 @@ pub mod wgpu_state {
     use anyhow::Result;
     use winit::dpi::PhysicalSize;
 
-    use super::instance::InstanceRaw;
     use super::store::Store;
 
     pub struct WgpuState {
@@ -84,7 +83,7 @@ pub mod wgpu_state {
         pub device: wgpu::Device,
         pub queue: wgpu::Queue,
         pub surface_format: wgpu::TextureFormat,
-        pub store: Store<InstanceRaw>,
+        pub store: Store,
     }
 
     // retain wgpu state
