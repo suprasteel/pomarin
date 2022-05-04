@@ -1,5 +1,5 @@
 pub mod camera;
-pub mod egui;
+pub mod egui; // egui root render
 pub mod error;
 pub mod geometry;
 pub mod instance;
@@ -8,6 +8,7 @@ pub mod material;
 pub mod mesh;
 pub mod model;
 pub mod object;
+pub mod objects_pass; // 3d root render
 pub mod pipeline;
 pub mod store;
 pub mod texture;
@@ -27,7 +28,7 @@ pub mod event {
     }
 
     pub trait EventEmitter<T> {
-        fn set_emitter_from(&mut self, proxy: &EventLoop<T>);
+        fn set_emitter_from(&mut self, event_loop: &EventLoop<T>);
         fn emit(&self, event: T) -> Result<()>;
     }
 
@@ -62,6 +63,9 @@ pub mod event {
 pub mod wgpu_state {
     use winit::dpi::PhysicalSize;
 
+    use super::instance::InstanceRaw;
+    use super::store::Store;
+
     pub struct WgpuState {
         pub instance: wgpu::Instance,
         pub surface: wgpu::Surface,
@@ -70,6 +74,7 @@ pub mod wgpu_state {
         pub device: wgpu::Device,
         pub queue: wgpu::Queue,
         pub surface_format: wgpu::TextureFormat,
+        pub store: Store<InstanceRaw>,
     }
 
     // retain wgpu state
@@ -108,6 +113,8 @@ pub mod wgpu_state {
             };
             surface.configure(&device, &config);
 
+            let store = Store::new();
+
             Self {
                 instance,
                 surface,
@@ -116,6 +123,7 @@ pub mod wgpu_state {
                 device,
                 queue,
                 surface_format,
+                store,
             }
         }
 

@@ -1,39 +1,6 @@
 use std::marker::PhantomData;
 
-use cgmath::{Quaternion, Vector3};
 use wgpu::BufferAddress;
-
-pub struct CgmathInstance {
-    position: cgmath::Vector3<f32>,
-    rotation: cgmath::Quaternion<f32>,
-}
-
-impl CgmathInstance {
-    pub(crate) fn to_raw(&self) -> InstanceRaw {
-        InstanceRaw {
-            model: (cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation)
-                * cgmath::Matrix4::from_scale(0.1))
-            .into(),
-            normal: cgmath::Matrix3::from(self.rotation).into(),
-        }
-    }
-}
-
-impl From<(Vector3<f32>, Quaternion<f32>)> for CgmathInstance {
-    fn from(pos_n_rot: (Vector3<f32>, Quaternion<f32>)) -> Self {
-        Self {
-            position: pos_n_rot.0,
-            rotation: pos_n_rot.1,
-        }
-    }
-}
-
-impl Into<InstanceRaw> for CgmathInstance {
-    fn into(self) -> InstanceRaw {
-        self.to_raw()
-    }
-}
 
 pub trait RawInstanceTrait: Copy + Clone + bytemuck::Pod + bytemuck::Zeroable {}
 

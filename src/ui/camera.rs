@@ -31,26 +31,33 @@ impl Default for CameraUniform {
 }
 
 impl CameraUniform {
-    fn update<F>(&mut self, f: F)
+    fn update<T>(self, updater: T) -> Self
     where
-        F: Fn(&mut CameraUniform),
+        T: CameraUpdater,
     {
-        f(self);
+        updater.update(self)
     }
 }
 
-pub struct CameraSystem<F> {
-    updater: Option<F>,
+pub trait CameraUpdater {
+    fn update(&mut self, camera_uniform: CameraUniform) -> CameraUniform;
+}
+
+pub struct CameraSystem<T>
+where
+    T: CameraUpdater,
+{
+    updater: T,
     uniform: CameraUniform,
     pub buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
 }
 
-impl<F> CameraSystem<F>
+impl<T> CameraSystem<T>
 where
-    F: Fn(&mut CameraUniform),
+    T: CameraUpdater,
 {
-    pub fn init(device: &wgpu::Device) -> (wgpu::BindGroupLayout, CameraSystem<F>) {
+    pub fn init(device: &wgpu::Device, updater: T) -> (wgpu::BindGroupLayout, CameraSystem<T>) {
         let uniform = CameraUniform::default();
 
         use wgpu::util::DeviceExt;
@@ -86,7 +93,7 @@ where
         (
             bind_group_layout,
             Self {
-                updater: None,
+                updater,
                 uniform,
                 buffer,
                 bind_group,
@@ -94,12 +101,8 @@ where
         )
     }
 
-    pub fn set_updater(&mut self, f: F) {
-        self.updater = Some(f);
-    }
-
     pub fn update(&mut self, queue: &wgpu::Queue, dt: Duration) {
-        self.updater.as_ref().map(|f| self.uniform.update(f));
+        self.uniform = self.updater.update(self.uniform);
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[self.uniform]))
     }
 }
