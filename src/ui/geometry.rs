@@ -71,7 +71,7 @@ where
         });
         let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some(&format!("{:?} Index Buffer", self.name.to_string())),
-            contents: unsafe { bytemuck::cast_slice(&self.indices) },
+            contents: bytemuck::cast_slice(&self.indices),
             usage: wgpu::BufferUsages::INDEX,
         });
         GeometryBuf {
