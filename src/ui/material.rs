@@ -262,7 +262,7 @@ pub struct TextureMaterialDescriptor {
 }
 
 impl NamedHandle<MaterialName> for TextureMaterialDescriptor {
-    fn named_handle(&self) -> MaterialName {
+    fn name(&self) -> MaterialName {
         MaterialName(self.name.clone())
     }
 }
@@ -276,7 +276,7 @@ pub struct ColorMaterialDescriptor {
 }
 
 impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
-    fn named_handle(&self) -> MaterialName {
+    fn name(&self) -> MaterialName {
         MaterialName(self.name.clone())
     }
 }

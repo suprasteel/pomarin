@@ -64,7 +64,7 @@ pub mod event {
 pub mod resources {
 
     pub trait NamedHandle<H> {
-        fn named_handle(&self) -> H;
+        fn name(&self) -> H;
     }
 }
 

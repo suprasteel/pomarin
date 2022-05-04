@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use super::{
-    instance::RawInstanceTrait, material::Material, mesh::Mesh, model::Model, object::Object,
+    instance::RawInstanceTrait, material::Material, mesh::MeshBuf, model::Model, object::Object,
     pipeline::NamedPipeline, texture::Texture,
 };
 
@@ -14,7 +14,7 @@ where
     /// materials dereferencing to bing group
     pub materials: RefCell<HashMap<String, Rc<dyn Material>>>,
     /// meshes made of geometries
-    pub meshes: RefCell<HashMap<String, Rc<Mesh>>>,
+    pub meshes: RefCell<HashMap<String, Rc<MeshBuf>>>,
     /// render unit using a shader and able to process a model with its mesh and material
     pub pipelines: RefCell<HashMap<String, Rc<NamedPipeline>>>,
     // TODO: rename to models
@@ -58,7 +58,7 @@ where
             .insert(pipeline.as_ref().name().clone(), pipeline);
     }
 
-    pub fn add_mesh(&self, mesh: Rc<Mesh>) {
+    pub fn add_mesh(&self, mesh: Rc<MeshBuf>) {
         self.meshes
             .borrow_mut()
             .insert(mesh.as_ref().name.clone(), mesh);
@@ -90,7 +90,7 @@ where
     }
 
     // TODO: use MeshName
-    pub fn get_mesh<S: AsRef<str>>(&self, name: S) -> Option<Rc<Mesh>> {
+    pub fn get_mesh<S: AsRef<str>>(&self, name: S) -> Option<Rc<MeshBuf>> {
         self.meshes
             .borrow()
             .get(&name.as_ref().to_string())

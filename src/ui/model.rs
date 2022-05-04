@@ -8,7 +8,7 @@ use super::{
     geometry::GeometryName,
     instance::RawInstanceTrait,
     material::{Material, MaterialName},
-    mesh::{Mesh, MeshDescriptor},
+    mesh::{MeshBuf, MeshDescriptor},
     pipeline::NamedPipeline,
     resources::NamedHandle,
     store::Store,
@@ -80,7 +80,7 @@ where
 {
     name: String,
     pipeline: Rc<NamedPipeline>,
-    mesh: Rc<Mesh>,
+    mesh: Rc<MeshBuf>,
     materials: Vec<Rc<dyn Material>>,
     //TODO: delete both
     instances: RefCell<Vec<I>>,
@@ -91,7 +91,7 @@ impl<I> Model<I>
 where
     I: RawInstanceTrait + std::fmt::Debug,
 {
-    pub fn new(name: String, pipeline: Rc<NamedPipeline>, mesh: Rc<Mesh>) -> Self {
+    pub fn new(name: String, pipeline: Rc<NamedPipeline>, mesh: Rc<MeshBuf>) -> Self {
         Self {
             name,
             pipeline,
@@ -104,38 +104,6 @@ where
 
     pub fn name(&self) -> String {
         self.name.clone()
-    }
-
-    pub fn set_material<S: AsRef<str>>(
-        &mut self,
-        geometry_name: S,
-        material: Rc<dyn Material>,
-    ) -> Result<&Self> {
-        if !self.pipeline.can_use(material.as_ref().kind()) {
-            Err(ModelError::IncompatibleModelMaterial {
-                model: self.name.to_string(),
-                mesh: self.mesh.name.to_string(),
-                material: material.as_ref().to_string(),
-                reason: format!(
-                    "material is supported by pipeline {} while model will be rendered by pipeline {}",
-                    String::from(material.as_ref().kind()),
-                    &self.pipeline.as_ref().name()
-                    ),
-            })?;
-        }
-
-        // geometry name exists for this mesh
-        self.mesh
-            .geometries
-            .iter()
-            .find(|g| g.name.eq(&geometry_name.as_ref().to_string()))
-            .ok_or(ModelError::GeometryNotFound {
-                geometry: geometry_name.as_ref().to_string(),
-                model: self.name.clone(),
-            })?;
-
-        self.materials.push(material.clone());
-        Ok(self)
     }
 
     pub fn instances_count(&self) -> u32 {
@@ -238,10 +206,8 @@ impl ModelDescriptor {
     where
         I: RawInstanceTrait + std::fmt::Debug,
     {
-        //TODO: validate
-
         let model_name = self.name.clone();
-        let mesh_name = self.mesh_desc.named_handle();
+        let mesh_name = self.mesh_desc.name();
         let pipeline_name = self.pipeline_name.clone();
         // load mesh from store
         let mesh = store
@@ -284,23 +250,23 @@ impl ModelDescriptor {
             _ => {
                 let mut model = Model::new(model_name.clone(), pipeline, mesh.clone());
                 let geometries_names = self.mesh_desc.geometries_names();
-                for geometry in geometries_names {
-                    let geo_mat = &self
-                        .geometries_materials
-                        .iter()
-                        .find(|gm| gm.0.eq(&geometry))
-                        .ok_or_else(|| ModelError::MaterialNotSetForGeometry {
-                            geometry: geometry.clone(),
+
+                for (g_name, m_name) in &self.geometries_materials {
+                    if !geometries_names.contains(&g_name) {
+                        return Err(anyhow!(ModelError::MaterialNotSetForGeometry {
+                            geometry: g_name.clone(),
                             model: model_name.clone(),
-                        })?;
-                    let material = store.get_material(&*geo_mat.1).ok_or_else(|| {
+                        }));
+                    }
+                    let material = store.get_material(m_name.deref()).ok_or_else(|| {
                         ModelError::MaterialNotFoundInStore {
-                            material: geo_mat.1.clone(),
+                            material: m_name.clone(),
                             model: model_name.clone(),
                         }
                     })?;
-                    model.set_material(geometry.deref(), material)?;
+                    model.materials.push(material.clone());
                 }
+
                 Ok(model)
             }
         }

@@ -1,70 +1,52 @@
-use std::{fmt::Display, ops::Deref, path::Path};
+use std::{fmt::Display, ops::Deref};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use wgpu::util::DeviceExt;
 
 use super::{
-    geometry::{Geometry, GeometryDescriptor, GeometryName},
+    geometry::{GeometryBuf, GeometryDescriptor, GeometryName, GeometryVertices},
     resources::NamedHandle,
     vertex::ModelVertex,
+    wgpu_state::{WgpuResourceLoader, WgpuState},
 };
 
-/// A mesh carries geometries
+/// # Wgpu named geometries buffers
 #[derive(Debug)]
-pub struct Mesh {
+pub struct MeshBuf {
     pub name: String,
-    pub geometries: Vec<Geometry>,
+    pub geometries: Vec<GeometryBuf>,
 }
 
-impl Mesh {
-    pub fn load_from_obj<P: AsRef<Path>, S: AsRef<str>>(
-        device: &wgpu::Device,
-        path: P,
-        name: S,
-    ) -> Result<Mesh> {
-        let (obj_models, _) = tobj::load_obj(
-            path.as_ref(),
-            &tobj::LoadOptions {
-                triangulate: true,
-                single_index: true,
-                ..Default::default()
-            },
-        )?;
-        let mut meshes = Vec::new();
-        obj_models.iter().for_each(|mesh| {
-            let mut vertices = Vec::new();
-            ModelVertex::fill_vertices_from_model(&mut vertices, &mesh);
-
-            let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
-            let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{:?} Index Buffer", path.as_ref())),
-                contents: bytemuck::cast_slice(&mesh.mesh.indices),
-                usage: wgpu::BufferUsages::INDEX,
-            });
-
-            meshes.push(Geometry {
-                name: mesh.name.to_string(),
-                vertex_buffer,
-                index_buffer,
-                num_elements: mesh.mesh.indices.len() as u32,
-            });
-        });
-
-        Result::Ok(Mesh {
-            name: name.as_ref().to_string(),
-            geometries: meshes,
-        })
-    }
-}
-
+/// Describe the kind of file/source is a mesh from
 #[derive(Deserialize, Serialize, Debug)]
-pub enum MeshSource {
+pub enum VerticesSource {
     Obj(String),
+    // one day...
+}
+
+impl VerticesSource {
+    fn load(&self) -> Result<Vec<GeometryVertices<ModelVertex>>> {
+        match &self {
+            VerticesSource::Obj(path) => {
+                let (obj_models, _) = tobj::load_obj(
+                    path,
+                    &tobj::LoadOptions {
+                        triangulate: true,
+                        single_index: true,
+                        ..Default::default()
+                    },
+                )?;
+                Ok(obj_models
+                    .into_iter()
+                    .map(|tobj_model| {
+                        let mut vertices = Vec::new();
+                        ModelVertex::fill_vertices_from_model(&mut vertices, &tobj_model);
+                        GeometryVertices::new(&tobj_model.name, vertices, tobj_model.mesh.indices)
+                    })
+                    .collect())
+            }
+        }
+    }
 }
 
 /// # Describe a mesh.
@@ -74,6 +56,7 @@ pub enum MeshSource {
 /// ```
 /// MeshDescriptor {
 ///     name: "zodiac",
+///     source: VerticesSource::Obj("file.obj")
 ///     geometries: vec![
 ///         GeometryDescriptor { name: "part_x" }
 ///         GeometryDescriptor { name: "part_y" }
@@ -84,7 +67,7 @@ pub enum MeshSource {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct MeshDescriptor {
     name: String,
-    file_name: MeshSource,
+    source: VerticesSource,
     geometries: Vec<GeometryDescriptor>,
 }
 
@@ -94,7 +77,7 @@ impl MeshDescriptor {
     }
 
     pub fn geometries_names(&self) -> Vec<GeometryName> {
-        self.geometries.iter().map(|g| g.named_handle()).collect()
+        self.geometries.iter().map(|g| g.name()).collect()
     }
 
     pub fn geometries(&self) -> &Vec<GeometryDescriptor> {
@@ -102,52 +85,32 @@ impl MeshDescriptor {
     }
 }
 
-/* impl WgpuResourceLoader for MeshDescriptor {
-    type Output = Mesh;
+impl WgpuResourceLoader for MeshDescriptor {
+    type Output = MeshBuf;
 
-    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+    fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        let geometries_vertices = self.source.load()?;
 
-        let (obj_models, _) = tobj::load_obj(
-            path.as_ref(),
-            &tobj::LoadOptions {
-                triangulate: true,
-                single_index: true,
-                ..Default::default()
-            },
-        )?;
-        let mut meshes = Vec::new();
-        obj_models.iter().for_each(|mesh| {
-            let mut vertices = Vec::new();
-            ModelVertex::fill_vertices_from_model(&mut vertices, &mesh);
+        let geometries = geometries_vertices
+            .iter()
+            .map(|gv| {
+                if self.geometries_names().contains(&gv.name()) {
+                    Ok(gv.to_geometry(&wgpu_state.device))
+                } else {
+                    Err(anyhow!("Expected geometry does not match file loaded"))
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
-            let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
-            let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{:?} Index Buffer", path.as_ref())),
-                contents: bytemuck::cast_slice(&mesh.mesh.indices),
-                usage: wgpu::BufferUsages::INDEX,
-            });
-
-            meshes.push(Geometry {
-                name: mesh.name.to_string(),
-                vertex_buffer,
-                index_buffer,
-                num_elements: mesh.mesh.indices.len() as u32,
-            });
-        });
-
-        Result::Ok(Mesh {
-            name: name.as_ref().to_string(),
-            geometries: meshes,
+        Ok(MeshBuf {
+            name: self.name.to_string(),
+            geometries,
         })
     }
-}*/
+}
 
 impl NamedHandle<MeshName> for MeshDescriptor {
-    fn named_handle(&self) -> MeshName {
+    fn name(&self) -> MeshName {
         MeshName(self.name.clone())
     }
 }

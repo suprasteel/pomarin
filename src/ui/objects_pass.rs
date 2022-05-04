@@ -1,12 +1,11 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 
 use super::camera::{CameraSystem, CameraUpdater};
-use super::event::{Emitter, EventEmitter, PomarinEvent};
+use super::event::{Emitter, PomarinEvent};
 use super::instance::{InstanceRaw, InstancesSystem};
 use super::light::{self, LightUniform};
 use super::material::MaterialKind;
