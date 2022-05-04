@@ -31,7 +31,7 @@ impl Default for CameraUniform {
 }
 
 impl CameraUniform {
-    fn update<T>(self, updater: T) -> Self
+    fn update<T>(self, mut updater: T) -> Self
     where
         T: CameraUpdater,
     {

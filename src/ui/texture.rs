@@ -1,11 +1,39 @@
 use anyhow::Result;
 use image::GenericImageView;
 use log::debug;
-use std::{ops::Deref, path::Path};
+use serde::{Deserialize, Serialize};
+use std::{
+    fmt::Display,
+    ops::Deref,
+    path::{Path, PathBuf},
+};
 
 use super::error::TextureError;
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq)]
+// TODO: check both are used
+#[derive(Deserialize, Serialize, Debug)]
+pub struct TextureDescriptor {
+    name: String,
+    path: PathBuf,
+    kind: TextureKind,
+}
+
+impl Display for TextureDescriptor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let k = if self.kind == TextureKind::Diffuse {
+            "diffuse"
+        } else {
+            "normal"
+        };
+        write!(
+            f,
+            "TextureDescriptor \"{}\" of type {} from {:?}",
+            self.name, k, self.path
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize, Serialize)]
 pub enum TextureKind {
     Diffuse,
     Normal,
@@ -56,7 +84,8 @@ impl Texture {
         path: P,
         is_normal_map: bool,
     ) -> Result<Self> {
-        debug!("Loading texture from file {:?}", path.as_ref().to_str());
+        // use load & texture as target ?
+        debug!(target: "load", "Loading texture from file {:?}", path.as_ref().to_str());
         let path_copy = path.as_ref().to_path_buf();
         let label = path_copy.to_str();
 

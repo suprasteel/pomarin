@@ -1,9 +1,14 @@
-use std::path::Path;
+use std::{fmt::Display, ops::Deref, path::Path};
 
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use wgpu::util::DeviceExt;
 
-use super::{geometry::Geometry, vertex::ModelVertex};
+use super::{
+    geometry::{Geometry, GeometryDescriptor, GeometryName},
+    resources::NamedHandle,
+    vertex::ModelVertex,
+};
 
 /// A mesh carries geometries
 #[derive(Debug)]
@@ -54,5 +59,62 @@ impl Mesh {
             name: name.as_ref().to_string(),
             geometries: meshes,
         })
+    }
+}
+
+/// # Describe a mesh.
+///
+/// ## Example:
+///
+/// ```
+/// MeshDescriptor {
+///     name: "zodiac",
+///     geometries: vec![
+///         GeometryDescriptor { name: "part_x" }
+///         GeometryDescriptor { name: "part_y" }
+///     ],
+/// }
+/// ```
+///
+#[derive(Deserialize, Serialize, Debug)]
+pub struct MeshDescriptor {
+    name: String,
+    geometries: Vec<GeometryDescriptor>,
+}
+
+impl MeshDescriptor {
+    pub fn count_geometries(&self) -> usize {
+        self.geometries.len()
+    }
+
+    pub fn geometries_names(&self) -> Vec<GeometryName> {
+        self.geometries.iter().map(|g| g.named_handle()).collect()
+    }
+
+    pub fn geometries(&self) -> &Vec<GeometryDescriptor> {
+        &self.geometries
+    }
+}
+
+impl NamedHandle<MeshName> for MeshDescriptor {
+    fn named_handle(&self) -> MeshName {
+        MeshName(self.name.clone())
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
+pub struct MeshName(String);
+
+impl Display for MeshName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Mesh({})", self.0)
+    }
+}
+
+impl Deref for MeshName {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

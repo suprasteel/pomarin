@@ -1,5 +1,7 @@
 use thiserror::Error as ThisError;
 
+use super::{geometry::GeometryName, material::MaterialName, mesh::MeshName};
+
 #[derive(ThisError, Debug)]
 pub enum MaterialError {
     #[error("Missing {field} to build material {material}")]
@@ -23,7 +25,7 @@ pub enum TextureError {
 #[derive(ThisError, Debug)]
 pub enum ModelError {
     #[error("Mesh {mesh} not found in store for model {model}")]
-    MeshNotFoundInStore { mesh: String, model: String },
+    MeshNotFoundInStore { mesh: MeshName, model: String },
     #[error(
         "Pipeline {pipeline} not found in store while trying to build {model} model description"
     )]
@@ -31,7 +33,10 @@ pub enum ModelError {
     #[error("Geometry {geometry} not found in store for model {model}")]
     GeometryNotFound { geometry: String, model: String },
     #[error("Material {material} not found in store for model {model}")]
-    MaterialNotFoundInStore { material: String, model: String },
+    MaterialNotFoundInStore {
+        material: MaterialName,
+        model: String,
+    },
     #[error("Model {model} (mesh {mesh}) cannot use material {material} due to : {reason}")]
     IncompatibleModelMaterial {
         model: String,
@@ -46,7 +51,7 @@ pub enum ModelError {
         )]
     InvalidMaterialCount {
         model_name: String,
-        mesh_name: String,
+        mesh_name: MeshName,
         descriptor_materials_count: usize,
         model_geometries_count: usize,
     },
@@ -57,5 +62,10 @@ pub enum ModelError {
         model: String,
         pipeline: String,
         reason: String,
+    },
+    #[error("Material not set for geometry {geometry} for model {model}")]
+    MaterialNotSetForGeometry {
+        geometry: GeometryName,
+        model: String,
     },
 }

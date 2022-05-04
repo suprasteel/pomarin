@@ -60,6 +60,13 @@ pub mod event {
     }
 }
 
+pub mod resources {
+
+    pub trait NamedHandle<H> {
+        fn named_handle(&self) -> H;
+    }
+}
+
 pub mod wgpu_state {
     use winit::dpi::PhysicalSize;
 

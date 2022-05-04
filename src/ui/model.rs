@@ -1,10 +1,17 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
 
 use super::{
-    error::ModelError, instance::RawInstanceTrait, material::Material, mesh::Mesh,
-    pipeline::NamedPipeline, store::Store,
+    error::ModelError,
+    geometry::GeometryName,
+    instance::RawInstanceTrait,
+    material::{Material, MaterialName},
+    mesh::{Mesh, MeshDescriptor},
+    pipeline::NamedPipeline,
+    resources::NamedHandle,
+    store::Store,
 };
 
 impl<I> Ord for Model<I>
@@ -110,10 +117,10 @@ where
                 mesh: self.mesh.name.to_string(),
                 material: material.as_ref().to_string(),
                 reason: format!(
-                "material is supported by pipeline {} while model will be rendered by pipeline {}",
-                String::from(material.as_ref().kind()),
-                &self.pipeline.as_ref().name()
-                ),
+                    "material is supported by pipeline {} while model will be rendered by pipeline {}",
+                    String::from(material.as_ref().kind()),
+                    &self.pipeline.as_ref().name()
+                    ),
             })?;
         }
 
@@ -193,81 +200,58 @@ where
     }
 }
 
-#[derive(Debug)]
-pub struct ModelDescription {
-    model_name: String,
-    mesh_name: Option<String>,
-    geometry_materials: Vec<(String, String)>,
-    pipeline_name: Option<String>,
+/// # Describe a model.
+///
+/// ## Example:
+///
+/// ```
+/// {
+///     name: "pink_house",
+///     mesh_desc: MeshDescriptor {
+///         name: "house",
+///         geometries: vec![
+///             GeometryDescriptor { name: "window" },
+///             GeometryDescriptor { name: "door" },
+///             GeometryDescriptor { name: "wall" },
+///         ],
+///     }
+///     geometries_materials: vec![
+///         ("window", "glass"),
+///         ("door", "wood"),
+///         ("wall", "pink"),
+///     ],
+///     pipeline_name: "pipeline_1"
+/// }
+/// ```
+///
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ModelDescriptor {
+    name: String,
+    mesh_desc: MeshDescriptor,
+    geometries_materials: Vec<(GeometryName, MaterialName)>,
+    pipeline_name: String, // Pipeline descriptor...
 }
 
-impl ModelDescription {
-    /// describe a new model, starting by its name
-    pub fn new<S: AsRef<str>>(name: S) -> Self {
-        Self {
-            model_name: name.as_ref().to_string(),
-            mesh_name: None,
-            geometry_materials: vec![],
-            pipeline_name: None,
-        }
-    }
+impl ModelDescriptor {
+    /// builds a model from resources available in store (resources have to be loaded beforehand)
+    pub fn build_model_from_store_resources<I>(&self, store: &Store<I>) -> Result<Model<I>>
+    where
+        I: RawInstanceTrait + std::fmt::Debug,
+    {
+        //TODO: validate
 
-    /// set the mesh (geometries) to use
-    pub fn mesh_name<S: AsRef<str>>(mut self, name: S) -> Self {
-        self.mesh_name = Some(name.as_ref().to_string());
-        self
-    }
-
-    /// set materials for geometries. For now, we can only use geometries that have the same
-    /// materialkind
-    pub fn add_geometry_material<S: AsRef<str>>(mut self, mesh: S, material: S) -> Self {
-        self.geometry_materials
-            .push((mesh.as_ref().to_string(), material.as_ref().to_string()));
-        self
-    }
-
-    pub fn pipeline_name<S: AsRef<str>>(mut self, name: S) -> Self {
-        self.pipeline_name = Some(name.as_ref().to_string());
-        self
-    }
-}
-
-impl<I> TryFrom<(ModelDescription, &Store<I>)> for Model<I>
-where
-    I: RawInstanceTrait + std::fmt::Debug,
-{
-    type Error = anyhow::Error;
-
-    fn try_from(value: (ModelDescription, &Store<I>)) -> Result<Self, Self::Error> {
-        let (description, store) = value;
-        let incomplete = |name: &str, field: &str| {
-            Err(anyhow!(ModelError::IncompleteModelDescription {
-                model: name.to_string(),
-                field: field.to_string(),
-            }))
-        };
-
-        let model_name = description.model_name;
-
-        if description.mesh_name.is_none() {
-            return incomplete(&model_name, "mesh_name");
-        }
-        let mesh_name = description.mesh_name.unwrap();
-
-        if description.pipeline_name.is_none() {
-            return incomplete(&model_name, "pipeline_name");
-        }
-        let pipeline_name = description.pipeline_name.unwrap();
-
-        // load mesh
+        let model_name = self.name.clone();
+        let mesh_name = self.mesh_desc.named_handle();
+        let pipeline_name = self.pipeline_name.clone();
+        // load mesh from store
         let mesh = store
-            .get_mesh(&mesh_name)
+            .get_mesh(&*mesh_name)
             .ok_or_else(|| ModelError::MeshNotFoundInStore {
-                mesh: mesh_name.to_string(),
+                mesh: mesh_name.clone(),
                 model: model_name.to_string(),
             })?;
 
-        // load pipeline
+        // load pipeline from store
         let pipeline = store.get_pipeline(&pipeline_name).ok_or_else(|| {
             ModelError::PipelineNotFoundInStore {
                 model: model_name.clone(),
@@ -275,56 +259,50 @@ where
             }
         })?;
 
-        // check material def matching pipeline needs
-        let materials_count = description.geometry_materials.len();
-        let mesh_count = mesh.geometries.len();
-
-        if !pipeline.needs_material() {
-            if materials_count != 0 && !pipeline.needs_material() {
+        match (self.geometries_materials.len(), pipeline.needs_material()) {
+            (0, false) => {
+                // no material and pipeline does not use any
+                let model = Model::new(model_name, pipeline, mesh.clone());
+                return Ok(model);
+            }
+            (mat_cnt, false) if mat_cnt != 0 => {
+                // fount material whereas pipeline doesnt use any
                 return Err(anyhow!(ModelError::InvalidMaterialAndPipeline {
                     model: model_name.clone(),
                     pipeline: pipeline_name.clone(),
                     reason: "Pipeline does not expect material".to_string()
                 }));
-            } else {
-                let model = Model::new(model_name, pipeline, mesh.clone());
-                return Ok(model);
             }
-        } else {
-            // should have materials
-            if materials_count != mesh_count {
+            (mat_cnt, true) if mat_cnt != self.mesh_desc.count_geometries() => {
                 return Err(anyhow!(ModelError::InvalidMaterialCount {
                     model_name: model_name.clone(),
                     mesh_name: mesh_name.clone(),
-                    descriptor_materials_count: materials_count,
-                    model_geometries_count: mesh_count
+                    descriptor_materials_count: mat_cnt,
+                    model_geometries_count: self.mesh_desc.count_geometries(),
                 }));
             }
-        }
-
-        // ready to build entity
-        let mut model = Model::new(model_name.clone(), pipeline, mesh.clone());
-
-        // add this point, all mesh should have a material
-        for geometry in &mesh.as_ref().geometries {
-            let geometry_name = geometry.name.to_string();
-            let material_name = description
-                .geometry_materials
-                .iter()
-                .find(|gm| gm.0.eq(&geometry_name))
-                .ok_or_else(|| anyhow!("Geometry {:?} material not set !", geometry_name))?
-                .1
-                .to_string();
-
-            let material = store.get_material(&material_name).ok_or_else(|| {
-                ModelError::MaterialNotFoundInStore {
-                    material: material_name.clone(),
-                    model: model_name.clone(),
+            _ => {
+                let mut model = Model::new(model_name.clone(), pipeline, mesh.clone());
+                let geometries_names = self.mesh_desc.geometries_names();
+                for geometry in geometries_names {
+                    let geo_mat = &self
+                        .geometries_materials
+                        .iter()
+                        .find(|gm| gm.0.eq(&geometry))
+                        .ok_or_else(|| ModelError::MaterialNotSetForGeometry {
+                            geometry: geometry.clone(),
+                            model: model_name.clone(),
+                        })?;
+                    let material = store.get_material(&*geo_mat.1).ok_or_else(|| {
+                        ModelError::MaterialNotFoundInStore {
+                            material: geo_mat.1.clone(),
+                            model: model_name.clone(),
+                        }
+                    })?;
+                    model.set_material(geometry.deref(), material)?;
                 }
-            })?;
-
-            model.set_material(geometry_name, material)?;
+                Ok(model)
+            }
         }
-        Ok(model)
     }
 }

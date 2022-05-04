@@ -14,6 +14,8 @@ pub struct NamedPipeline {
     supported_material_kind: Vec<MaterialKind>,
 }
 
+// TODO: PipelineName
+
 impl NamedPipeline {
     pub fn new<S: AsRef<str>>(
         name: S,

@@ -1,8 +1,13 @@
 use std::{fmt::Debug, ops::Deref};
 
+use serde::{Deserialize, Serialize};
 use wgpu::util::DeviceExt;
 
-use super::{error::MaterialError, texture};
+use super::{
+    error::MaterialError,
+    resources::NamedHandle,
+    texture::{self, TextureDescriptor},
+};
 
 #[derive(Clone, Copy, Hash, PartialEq, std::cmp::Eq, Debug)]
 pub enum MaterialKind {
@@ -243,76 +248,60 @@ impl ToString for TextureMaterial {
     }
 }
 
-pub mod utils {
-    use anyhow::{anyhow, Result};
-    use std::path::{Path, PathBuf};
-    use std::rc::Rc;
+#[derive(Deserialize, Serialize, Debug)]
+pub struct TextureMaterialDescriptor {
+    name: String,
+    diffuse_texture: TextureDescriptor,
+    normal_texture: TextureDescriptor,
+}
 
-    use super::TextureMaterial;
-    use crate::ui::error::MaterialError;
-    use crate::ui::texture::Texture;
-    use crate::ui::texture::TextureKind;
-
-    #[derive(Debug)]
-    pub struct TextureMaterialDescriptor {
-        name: Option<String>,
-        diffuse_texture: Option<(String, PathBuf)>,
-        normal_texture: Option<(String, PathBuf)>,
-    }
-
-    impl TextureMaterialDescriptor {
-        pub fn name<S: AsRef<str>>(mut self, name: S) -> Self {
-            self.name = Some(name.as_ref().to_string());
-            self
-        }
-
-        pub fn diffuse_texture<S: AsRef<str>, P: AsRef<Path>>(mut self, name: S, path: P) -> Self {
-            self.diffuse_texture = Some((name.as_ref().to_string(), path.as_ref().into()));
-            self
-        }
-
-        pub fn normal_texture<S: AsRef<str>, P: AsRef<Path>>(mut self, name: S, path: P) -> Self {
-            self.diffuse_texture = Some((name.as_ref().to_string(), path.as_ref().into()));
-            self
-        }
-
-        fn unwrap(&self) -> Result<(String, (String, PathBuf), (String, PathBuf))> {
-            let incomplete = |material: &str, field: &str| {
-                anyhow!(MaterialError::MaterialBuilderIncomplete {
-                    material: material.to_string(),
-                    field: field.to_string()
-                })
-            };
-
-            let name = self.name.as_ref().ok_or_else(|| incomplete("?", "name"))?;
-            let unwrap_texture_name =
-                |param: Option<&(String, PathBuf)>, tk: TextureKind| -> Result<(String, PathBuf)> {
-                    param.map_or_else(
-                        || Err(incomplete(name, &String::from(tk))),
-                        |(a, b)| Ok((a.clone(), b.clone())),
-                    )
-                };
-            let diffuse = unwrap_texture_name(self.diffuse_texture.as_ref(), TextureKind::Diffuse)?;
-            let normal = unwrap_texture_name(self.normal_texture.as_ref(), TextureKind::Normal)?;
-            Ok((name.to_string(), diffuse, normal))
-        }
-
-        pub fn _build(
-            &self,
-            device: &wgpu::Device,
-            queue: &wgpu::Queue,
-        ) -> Result<TextureMaterial> {
-            let (name, diffuse, normal) = self.unwrap()?;
-
-            let diffuse_texture = Rc::new(Texture::load(device, queue, diffuse.0, true)?);
-            let normal_texture = Rc::new(Texture::load(device, queue, normal.1, true)?);
-
-            Ok(TextureMaterial::new(
-                device,
-                name.clone(),
-                &diffuse_texture,
-                &normal_texture,
-            ))
-        }
+impl NamedHandle<MaterialName> for TextureMaterialDescriptor {
+    fn named_handle(&self) -> MaterialName {
+        MaterialName(self.name.clone())
     }
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ColorMaterialDescriptor {
+    name: String,
+    ambient: [f32; 3],
+    diffuse: [f32; 3],
+    specular: f32,
+}
+
+impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
+    fn named_handle(&self) -> MaterialName {
+        MaterialName(self.name.clone())
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone)]
+pub struct MaterialName(String);
+
+impl Deref for MaterialName {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for MaterialName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Material({})", self.0)
+    }
+}
+
+/* pub fn _build(&self, device: &wgpu::Device, queue: &wgpu::Queue) -> Result<TextureMaterial> {
+let (name, diffuse, normal) = self.unwrap()?;
+
+let diffuse_texture = Rc::new(Texture::load(device, queue, diffuse.0, true)?);
+let normal_texture = Rc::new(Texture::load(device, queue, normal.1, true)?);
+
+Ok(TextureMaterial::new(
+device,
+name.clone(),
+&diffuse_texture,
+&normal_texture,
+))
+}*/

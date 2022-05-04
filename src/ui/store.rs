@@ -89,6 +89,7 @@ where
             .map(|m| m.clone())
     }
 
+    // TODO: use MeshName
     pub fn get_mesh<S: AsRef<str>>(&self, name: S) -> Option<Rc<Mesh>> {
         self.meshes
             .borrow()
