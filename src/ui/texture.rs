@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use image::GenericImageView;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{error::TextureError, wgpu_state::WgpuResourceLoader};
+use super::{error::TextureError, resources::NamedHandle, wgpu_state::WgpuResourceLoader};
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -229,5 +229,34 @@ impl TryFrom<&str> for TextureKind {
                 input: input.to_string(),
             }),
         }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]
+pub struct TextureName(String);
+
+impl From<&str> for TextureName {
+    fn from(value: &str) -> Self {
+        TextureName(value.to_string())
+    }
+}
+
+impl Deref for TextureName {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl NamedHandle<TextureName> for TextureDescriptor {
+    fn name(&self) -> TextureName {
+        TextureName(self.name.to_string())
+    }
+}
+
+impl std::fmt::Display for TextureName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Texture({})", self.0)
     }
 }

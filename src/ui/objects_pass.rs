@@ -1,8 +1,10 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
+use winit::dpi::PhysicalSize;
+use winit::event::WindowEvent;
 use winit::event_loop::EventLoop;
-use winit::window::Window;
+use winit::{event::Event, window::Window};
 
 use super::camera::{CameraSystem, CameraUpdater};
 use super::event::{Emitter, PomarinEvent};
@@ -13,7 +15,7 @@ use super::pipeline::{
     create_colored_model_pipeline, create_light_pipeline, create_textured_model_pipeline,
     NamedPipeline,
 };
-use super::texture;
+use super::texture::{self, Texture};
 use super::wgpu_state::WgpuState;
 
 pub struct CamCtrl {}
@@ -35,17 +37,16 @@ impl Default for CamCtrl {
 
 pub struct ObjectsPass {
     emitter: Arc<Emitter<PomarinEvent>>,
+    depth_texture: Texture,
 }
 
 impl ObjectsPass {
-    fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
-        // load assets descriptions
-
-        //        let meshes = read_mesh_descriptors(file);
-
-        // load assets
-
+    pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         let emitter = Arc::new(Emitter::new(event_loop));
+
+        // Define object
+        // load object assets
+        // create renderable object
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
         let (light_bgl, light) = light::LightSystem::init(LightUniform::default(), &wgpu.device);
@@ -54,8 +55,6 @@ impl ObjectsPass {
 
         let depth_texture =
             texture::Texture::create_depth_texture(&wgpu.device, &wgpu.config, "depth_texture");
-
-        let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
 
         let textured_model_pipeline = NamedPipeline::new(
             "textures_pipeline",
@@ -75,6 +74,38 @@ impl ObjectsPass {
         wgpu.store.add_pipeline(Rc::new(textured_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(colored_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(light_pipeline));
-        Self { emitter }
+
+        Self {
+            emitter,
+            depth_texture,
+        }
+    }
+
+    pub(crate) fn resize(&mut self, wgpu_state: &WgpuState) {
+        // self.projection.resize(size);
+        self.depth_texture = texture::Texture::create_depth_texture(
+            &wgpu_state.device,
+            &wgpu_state.config,
+            "depth_texture",
+        );
+    }
+
+    pub(crate) fn handle_event(&mut self, ref event: PomarinEvent) {
+        match event {
+            PomarinEvent::SomeEvent => {
+                log::info!(target: "event", "some user event");
+            }
+            _ => {}
+        };
+    }
+
+    pub(crate) fn render(
+        &mut self,
+        wgpu: &WgpuState,
+        window: &winit::window::Window,
+        output_view: &wgpu::TextureView,
+        mut encoder: wgpu::CommandEncoder,
+    ) -> wgpu::CommandEncoder {
+        todo!()
     }
 }

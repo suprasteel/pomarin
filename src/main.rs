@@ -3,6 +3,7 @@ mod ui;
 
 use std::{sync::Arc, thread, time::Duration};
 
+use settings::config::AppConfig;
 use ui::{event::Emitter, wgpu_state::WgpuState};
 use winit::{
     dpi::PhysicalSize,
@@ -11,10 +12,14 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::ui::{
-    egui::{EguiRoutine, EguiWgpuPassBuilder},
-    event::PomarinEvent,
-    loader::example_model,
+use crate::{
+    settings::config::load_conf,
+    ui::{
+        egui::{EguiRoutine, EguiWgpuPassBuilder},
+        event::PomarinEvent,
+        loader::example_model,
+        objects_pass::ObjectsPass,
+    },
 };
 
 const APP_NAME: &'static str = "Pomarin";
@@ -35,8 +40,7 @@ fn main() {
 
     example_model();
 
-    let mut ui = AppUi::new();
-    ui.set_max_fps(60);
+    let ui = AppUi::new(load_conf());
     let emitter = ui.get_emitter();
 
     thread::spawn(move || loop {
@@ -63,6 +67,7 @@ pub trait WgpuRpass {
 }
 
 pub struct AppUi {
+    app_config: AppConfig,
     event_loop: EventLoop<PomarinEvent>,
     _max_fps: u64,
     _fps_time: Duration,
@@ -70,20 +75,17 @@ pub struct AppUi {
 }
 
 impl AppUi {
-    pub fn new() -> Self {
+    pub fn new(app_config: AppConfig) -> Self {
         let max_fps = 120;
         let _fps_time = Duration::from_millis(1_000 / max_fps);
         let event_loop = EventLoop::<PomarinEvent>::with_user_event();
         Self {
+            app_config,
             event_loop,
             _max_fps: max_fps,
             _fps_time,
             initial_size: PhysicalSize::new(200, 200),
         }
-    }
-
-    pub fn set_max_fps(&mut self, max: u64) {
-        self._max_fps = max;
     }
 
     pub fn get_emitter(&self) -> Arc<Emitter<PomarinEvent>> {
@@ -99,13 +101,13 @@ impl AppUi {
         window.set_visible(true);
         window.set_min_inner_size(Some(self.initial_size));
 
-        let mut wgpu = WgpuState::init(&window);
+        let mut wgpu = WgpuState::init(&window, &self.app_config.resources);
         let mut egui = EguiWgpuPassBuilder::new(EguiRoutine::default()).build(
             &wgpu,
             &window,
             &self.event_loop,
         );
-        // let mut rend = ObjectsPass::new(&wgpu, &window, &self.event_loop);
+        let mut rend = ObjectsPass::new(&wgpu, &window, &self.event_loop);
 
         log::info!("Starting event loop");
 
@@ -126,26 +128,33 @@ impl AppUi {
                             }
                             WindowEvent::Resized(size) => {
                                 let size = *size;
-                                wgpu.update_size(size);
+                                wgpu.pre_resize(size);
+                                // other
+                                rend.resize(&wgpu);
+                                wgpu.post_resize(size);
+
                                 log::info!(target: "event", "Window resized to {:?}", size);
                             }
                             _ => {}
                         }
                     }
                 }
-                Event::UserEvent(event) => match event {
-                    PomarinEvent::SomeEvent => {
-                        log::info!(target: "event", "some user event");
+                Event::UserEvent(event) => {
+                    rend.handle_event(event);
+                    match event {
+                        PomarinEvent::SomeEvent => {
+                            log::info!(target: "event", "some user event");
+                        }
+                        PomarinEvent::EguiRequestRedraw => {
+                            //egui
+                            window.request_redraw();
+                        }
+                        PomarinEvent::CloseApp => {
+                            log::info!(target: "event", "App close requested");
+                            *control_flow = ControlFlow::Exit;
+                        }
                     }
-                    PomarinEvent::EguiRequestRedraw => {
-                        //egui
-                        window.request_redraw();
-                    }
-                    PomarinEvent::CloseApp => {
-                        log::info!(target: "event", "App close requested");
-                        *control_flow = ControlFlow::Exit;
-                    }
-                },
+                }
                 Event::MainEventsCleared => {
                     window.request_redraw();
                 }

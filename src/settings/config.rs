@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 
 use serde::Deserialize;
 use winit::dpi::{PhysicalSize, Size};
@@ -6,7 +6,7 @@ use winit::dpi::{PhysicalSize, Size};
 static CONF_PATH: &'static str = env!("APP_CONF_FILE_PATH");
 
 /// Initial window configuration
-#[derive(Copy, Clone, Deserialize)]
+#[derive(Copy, Clone, Deserialize, Debug)]
 pub struct WindowConfig {
     pub height: u32,
     pub width: u32,
@@ -32,32 +32,42 @@ impl From<WindowConfig> for Size {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ResourcesConfig {
     /// textures as images
     pub textures_directory: String,
-    /// meshes as .obj files
+    /// meshes as (.obj) files
     pub meshes_directory: String,
-    /// list of models (use mesh + material ...)
-    pub models_description_cfg: String,
+    /// file path of the list of models (use mesh + material ...)
+    pub models_cfg: String,
+    /// file path of the list of meshes
+    pub meshes_cfg: String,
     /// list of resources to load (textures files from texture_directory, meshes files from
-    /// meshes_directory
-    pub materials_description_cfg: String,
+    pub materials_cfg: String,
+    /// file path of the list of textures
+    pub textures_cfg: String,
+}
+
+fn tostring(pathbuf: PathBuf) -> String {
+    pathbuf.into_os_string().into_string().unwrap()
 }
 
 impl Default for ResourcesConfig {
     fn default() -> Self {
+        let out_dir: PathBuf = PathBuf::from(env!("OUT_DIR").to_string());
         Self {
-            textures_directory: env!("OUT_DIR").to_string() + "./textures",
-            meshes_directory: env!("OUT_DIR").to_string() + "./meshes",
-            models_description_cfg: env!("OUT_DIR").to_string() + "./config/models.cfg",
-            materials_description_cfg: env!("OUT_DIR").to_string() + "./config/materials.cfg",
+            textures_directory: tostring(out_dir.join("textures")),
+            meshes_directory: tostring(out_dir.join("meshes")),
+            models_cfg: tostring(out_dir.join("models.ron")),
+            meshes_cfg: tostring(out_dir.join("meshes.ron")),
+            materials_cfg: tostring(out_dir.join("materials.ron")),
+            textures_cfg: tostring(out_dir.join("textures.ron")),
         }
     }
 }
 
 /// Initial application configuration
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct AppConfig {
     pub window: WindowConfig,
     pub resources: ResourcesConfig,

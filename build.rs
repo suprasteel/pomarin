@@ -16,6 +16,8 @@ fn main() -> Result<()> {
     paths_to_copy.push("res/config/cfg.ron");
     paths_to_copy.push("res/config/materials.ron");
     paths_to_copy.push("res/config/meshes.ron");
+    paths_to_copy.push("res/config/textures.ron");
+    paths_to_copy.push("res/config/models.ron");
     paths_to_copy.push("res/meshes");
     paths_to_copy.push("res/textures");
     copy_items(&paths_to_copy, out_dir.clone(), &copy_options)?;

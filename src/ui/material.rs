@@ -43,6 +43,7 @@ impl TryFrom<&str> for MaterialKind {
 
 /// In the end a material is just a bind group with atached data (as texture or uniform buffer)
 pub trait Material: ToString + Debug + Deref<Target = wgpu::BindGroup> {
+    // replace by name handle
     fn name(&self) -> String;
     fn kind(&self) -> MaterialKind;
 }
@@ -143,7 +144,7 @@ impl ToString for ColorMaterial {
 #[derive(Debug)]
 pub struct TextureMaterial {
     kind: MaterialKind,
-    pub name: String,
+    name: String,
     pub bind_group: wgpu::BindGroup,
 }
 
@@ -276,6 +277,7 @@ pub struct TextureMaterialDescriptor {
 impl TextureMaterialDescriptor {
     pub fn _new_(
         name: String,
+        //TODO: TextureName instead
         diffuse_texture: TextureDescriptor,
         normal_texture: TextureDescriptor,
     ) -> Self {
@@ -318,7 +320,7 @@ impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]
 pub struct MaterialName(String);
 
 impl From<&str> for MaterialName {

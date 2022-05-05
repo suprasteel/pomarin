@@ -1,31 +1,17 @@
 [
     (
-        name:"texture_zod",
-        mesh_desc:(
-            name:"house",
-            source:Obj("zodiac_001.obj"),
-            geometries:[
-                (name:"hull"),(name:"inflatable")
-            ]
-        ),
-        geometries_materials:[
-            (("hull"),("wall")),
-            (("inflatable"),("default"))
-        ],
-        pipeline_name:"textures_pipeline"
+        name:"zodiac",
+        source:Obj("zodiac_001.obj"),
+        geometries:[
+            (name:"hull"),
+            (name:"inflatable")
+        ]
     ),
     (
-        name:"color_zod",
-        mesh_desc:(name:"zodiac",
-            source:Obj("zodiac_001.obj"),
-            geometries:[
-                (name:"hull"),
-                (name:"inflatable")
-            ]),
-        geometries_materials:[
-            (("hull"),("white")),
-            (("inflatable"),("grey"))
-        ],
-        pipeline_name:"colors_pipeline"
+        name:"cube",
+        source:Obj("cube_001.obj"),
+        geometries:[
+            (name:"cube")
+        ]
     )
 ]

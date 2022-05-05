@@ -104,12 +104,24 @@ impl WgpuResourceLoader for MeshDescriptor {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Hash)]
 pub struct MeshName(String);
 
 impl Display for MeshName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Mesh({})", self.0)
+    }
+}
+
+impl From<&str> for MeshName {
+    fn from(value: &str) -> Self {
+        MeshName(value.to_string())
+    }
+}
+
+impl AsRef<str> for MeshName {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 

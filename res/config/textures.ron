@@ -1,0 +1,22 @@
+[
+    (
+        name:"t_d_wall",
+        path:"wall_diffuse.jpg",
+        kind:Diffuse
+    ),
+    (
+        name:"t_n_wall",
+        path:"wall_normal.jpg",
+        kind:Normal
+    ),
+    (
+        name:"t_d_default",
+        path:"default_diffuse.jpg",
+        kind:Diffuse
+    ),
+    (
+        name:"t_n_default",
+        path:"default_normal.jpg",
+        kind:Normal
+    )
+]

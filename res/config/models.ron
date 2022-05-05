@@ -1,0 +1,20 @@
+[
+    (
+        name:"texture_zod",
+        mesh:("house"),
+        geometries_materials:[
+            (("hull"),("wall")),
+            (("inflatable"),("default"))
+        ],
+        pipeline_name:"textures_pipeline"
+    ),
+    (
+        name:"color_zod",
+        mesh:("zodiac"),
+        geometries_materials:[
+            (("hull"),("white")),
+            (("inflatable"),("grey"))
+        ],
+        pipeline_name:"colors_pipeline"
+    )
+]

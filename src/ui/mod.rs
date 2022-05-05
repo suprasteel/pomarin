@@ -73,6 +73,11 @@ pub mod wgpu_state {
     use anyhow::Result;
     use winit::dpi::PhysicalSize;
 
+    use crate::settings::{
+        assets::{load_assets, AssetsDescriptors},
+        config::ResourcesConfig,
+    };
+
     use super::store::Store;
 
     pub struct WgpuState {
@@ -84,12 +89,13 @@ pub mod wgpu_state {
         pub device: wgpu::Device,
         pub queue: wgpu::Queue,
         pub surface_format: wgpu::TextureFormat,
+        pub assets: AssetsDescriptors,
         pub store: Store,
     }
 
     // retain wgpu state
     impl WgpuState {
-        pub(crate) fn init(window: &winit::window::Window) -> Self {
+        pub(crate) fn init(window: &winit::window::Window, assets_conf: &ResourcesConfig) -> Self {
             // should read config files and load models during init
             // let mut wgpu_context = pollster::block_on(Wgpu::new(&window));
             let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
@@ -124,6 +130,7 @@ pub mod wgpu_state {
             surface.configure(&device, &config);
 
             let store = Store::new();
+            let assets = load_assets(assets_conf).expect("asset loading failure");
 
             Self {
                 instance,
@@ -133,14 +140,20 @@ pub mod wgpu_state {
                 device,
                 queue,
                 surface_format,
+                assets,
                 store,
             }
         }
 
-        pub(crate) fn update_size(&mut self, size: PhysicalSize<u32>) {
+        pub(crate) fn pre_resize(&mut self, size: PhysicalSize<u32>) {
             if size.width > 0 && size.height > 0 {
                 self.config.width = size.width;
                 self.config.height = size.height;
+            }
+        }
+
+        pub(crate) fn post_resize(&mut self, size: PhysicalSize<u32>) {
+            if size.width > 0 && size.height > 0 {
                 self.surface.configure(&self.device, &self.config)
             }
         }

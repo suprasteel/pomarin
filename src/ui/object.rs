@@ -1,7 +1,9 @@
+use super::model::ModelName;
+
 #[derive(PartialEq, Debug)]
 pub struct Object {
     name: String,
-    model: String,
+    model: ModelName,
     position: [f32; 3],
     orientation: [f32; 4],
     mesh_scale: f32,
@@ -9,6 +11,17 @@ pub struct Object {
 }
 
 impl Object {
+    pub fn new(name: String, model: ModelName) -> Self {
+        Self {
+            name,
+            model,
+            position: [0.0, 0.0, 0.0],
+            orientation: [0.0, 0.0, 0.0, 0.0],
+            mesh_scale: 1.0,
+            opacity: 1.0,
+        }
+    }
+
     pub fn name(&self) -> String {
         self.name.clone()
     }
