@@ -11,6 +11,7 @@ pub mod model;
 pub mod object;
 pub mod objects_pass; // 3d root render
 pub mod pipeline;
+pub mod rpass;
 pub mod store;
 pub mod texture;
 pub mod vertex;

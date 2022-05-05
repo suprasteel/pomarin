@@ -28,6 +28,10 @@ impl Object {
     pub fn name(&self) -> String {
         self.name.clone()
     }
+
+    pub fn model(&self) -> ModelName {
+        self.model.clone()
+    }
 }
 
 impl PartialOrd for Object {
@@ -45,6 +49,18 @@ impl PartialOrd for Object {
             ord => return ord,
         }
         self.opacity.partial_cmp(&other.opacity)
+    }
+}
+
+impl From<&Object> for InstanceRaw {
+    fn from(o: &Object) -> Self {
+        InstanceRaw {
+            model: (cgmath::Matrix4::from_translation(o.position)
+                * cgmath::Matrix4::from(o.orientation)
+                * cgmath::Matrix4::from_scale(o.mesh_scale))
+            .into(),
+            normal: cgmath::Matrix3::from(o.orientation).into(),
+        }
     }
 }
 

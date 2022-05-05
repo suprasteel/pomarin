@@ -43,6 +43,22 @@ pub mod assets {
         }
     }
 
+    pub trait TryAsRef<T> {
+        type Error;
+        fn try_as_ref(&self) -> Result<&T, Self::Error>;
+    }
+
+    impl TryAsRef<ModelDescriptor> for AssetDescriptor {
+        type Error = anyhow::Error;
+        fn try_as_ref(&self) -> Result<&ModelDescriptor, Self::Error> {
+            if let AssetDescriptor::Model(model) = self {
+                Ok(model)
+            } else {
+                Err(anyhow!("AssetDescriptor is not a ModelDescriptor"))
+            }
+        }
+    }
+
     #[derive(Hash, Eq, PartialEq, Debug)]
     pub enum AssetName {
         Texture(TextureName),
@@ -83,47 +99,6 @@ pub mod assets {
             AssetName::Model(self)
         }
     }
-
-    impl TryFrom<&AssetDescriptor> for ModelDescriptor {
-        type Error = anyhow::Error;
-        fn try_from(value: &AssetDescriptor) -> Result<Self, Self::Error> {
-            match value {
-                AssetDescriptor::Model(md) => Ok(*md),
-                _ => Err(anyhow!("Not a model")),
-            }
-        }
-    }
-
-    impl TryFrom<&AssetDescriptor> for MaterialDescriptor {
-        type Error = anyhow::Error;
-        fn try_from(value: &AssetDescriptor) -> Result<Self, Self::Error> {
-            match value {
-                AssetDescriptor::Material(m) => Ok(*m),
-                _ => Err(anyhow!("Not a material")),
-            }
-        }
-    }
-
-    impl TryFrom<&AssetDescriptor> for MeshDescriptor {
-        type Error = anyhow::Error;
-        fn try_from(value: &AssetDescriptor) -> Result<Self, Self::Error> {
-            match value {
-                AssetDescriptor::Mesh(m) => Ok(*m),
-                _ => Err(anyhow!("Not a mesh")),
-            }
-        }
-    }
-
-    impl TryFrom<&AssetDescriptor> for TextureDescriptor {
-        type Error = anyhow::Error;
-        fn try_from(value: &AssetDescriptor) -> Result<Self, Self::Error> {
-            match value {
-                AssetDescriptor::Texture(t) => Ok(*t),
-                _ => Err(anyhow!("Not a texture")),
-            }
-        }
-    }
-
     #[derive(Debug)]
     pub struct AssetsDescriptors(HashMap<AssetName, AssetDescriptor>);
 

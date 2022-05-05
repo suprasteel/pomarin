@@ -18,9 +18,9 @@ use super::{
 #[derive(Debug)]
 pub struct Model {
     name: String,
-    pipeline: Rc<NamedPipeline>,
-    mesh: Rc<MeshBuf>,
-    materials: Vec<Rc<dyn Material>>,
+    pub pipeline: Rc<NamedPipeline>,
+    pub mesh: Rc<MeshBuf>,
+    pub materials: Vec<Rc<dyn Material>>,
     //TODO: delete both
     /*instances: RefCell<Vec<I>>,
     instances_names: RefCell<Vec<String>>,*/

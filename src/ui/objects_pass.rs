@@ -1,24 +1,26 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use winit::dpi::PhysicalSize;
-use winit::event::WindowEvent;
+use anyhow::anyhow;
 use winit::event_loop::EventLoop;
-use winit::{event::Event, window::Window};
+use winit::window::Window;
+
+use crate::settings::assets::{AssetDescriptor, TryAsRef};
 
 use super::camera::{CameraSystem, CameraUpdater};
 use super::event::{Emitter, PomarinEvent};
 use super::instance::{InstanceRaw, InstancesSystem};
-use super::light::{self, LightUniform};
+use super::light::{self, LightSystem, LightUniform};
 use super::material::MaterialKind;
-use super::model::{ModelDescriptor, ModelName};
+use super::model::{Model, ModelDescriptor, ModelName};
 use super::object::Object;
 use super::pipeline::{
     create_colored_model_pipeline, create_light_pipeline, create_textured_model_pipeline,
     NamedPipeline,
 };
+use super::rpass::DrawModel;
 use super::texture::{self, Texture};
-use super::wgpu_state::WgpuState;
+use super::wgpu_state::{WgpuResourceLoader, WgpuState};
 
 pub struct CamCtrl {}
 
@@ -40,6 +42,21 @@ impl Default for CamCtrl {
 pub struct ObjectsPass {
     emitter: Arc<Emitter<PomarinEvent>>,
     depth_texture: Texture,
+    objects: Vec<LinkedObject>,
+    instances_system: InstancesSystem<InstanceRaw>,
+    camera_system: CameraSystem<CamCtrl>,
+    light_system: LightSystem<LightUniform>, //TODO: rm useless trait/generic
+}
+
+pub struct LinkedObject {
+    object: Object,
+    model: Rc<Model>,
+}
+
+impl LinkedObject {
+    fn name(&self) -> String {
+        self.object.name()
+    }
 }
 
 impl ObjectsPass {
@@ -49,10 +66,11 @@ impl ObjectsPass {
         // Define object
         // load object assets
         // create renderable object
-        let mut object_instance = Object::new("test".to_string(), ModelName::from("zodiac"));
+        let object = Object::new("test".to_string(), ModelName::from("zodiac"));
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
-        let (light_bgl, light) = light::LightSystem::init(LightUniform::default(), &wgpu.device);
+        let (light_bgl, light_system) =
+            light::LightSystem::init(LightUniform::default(), &wgpu.device);
 
         let (camera_bgl, camera_system) = CameraSystem::init(&wgpu.device, CamCtrl::default());
 
@@ -78,15 +96,43 @@ impl ObjectsPass {
         wgpu.store.add_pipeline(Rc::new(colored_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(light_pipeline));
 
-        let zod = wgpu
-            .assets
-            .find(ModelName::from("zodiac"))
-            .map(|z| ModelDescriptor::try_from(z).map(|z| zd.load()));
+        let mut objects = vec![];
+
+        wgpu.assets
+            .find(object.model())
+            .ok_or(anyhow!("obj asset model not found"))
+            .and_then(|model: &AssetDescriptor| model.try_as_ref())
+            .and_then(|zd: &ModelDescriptor| zd.load(wgpu))
+            .and_then(|model| {
+                instances_system.set_instances_raw(vec![InstanceRaw::from(&object)], &wgpu.queue);
+                objects.push(LinkedObject { object, model });
+                Ok(())
+            })
+            .err()
+            .iter()
+            .for_each(|e| log::warn!("Trying to load text object: {}", e));
 
         Self {
             emitter,
+            instances_system,
             depth_texture,
+            objects,
+            camera_system,
+            light_system,
         }
+    }
+
+    fn update_instance_system(&mut self, wgpu: &WgpuState) {
+        let mut instances = vec![];
+        //let mut i = 0;
+        for o in &self.objects {
+            log::debug!("Object: {:?}", o.name());
+            instances.push(InstanceRaw::from(&o.object));
+            //i += 1;
+        }
+        self.instances_system
+            .set_instances_raw(instances, &wgpu.queue);
+        log::debug!("total instances count : {}", self.instances_system.count());
     }
 
     pub(crate) fn resize(&mut self, wgpu_state: &WgpuState) {
@@ -110,10 +156,55 @@ impl ObjectsPass {
     pub(crate) fn render(
         &mut self,
         wgpu: &WgpuState,
-        window: &winit::window::Window,
+        _window: &winit::window::Window,
         output_view: &wgpu::TextureView,
         mut encoder: wgpu::CommandEncoder,
     ) -> wgpu::CommandEncoder {
-        todo!()
+        self.update_instance_system(wgpu);
+        let objects = self.objects.iter().map(|o| &o.model).collect();
+        //
+        {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass"),
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &output_view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.3,
+                            a: 1.0,
+                        }),
+                        store: true,
+                    },
+                }],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_texture.view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
+            });
+
+            {
+                // instances of entities
+                // entities are put in a vec
+                // an instances buffer is made from those entities and their instances
+                // drawing is done by draw for each entity instance mapped with the correct
+                // instance bytes in the instance buffer
+                render_pass.set_vertex_buffer(1, self.instances_system.buffer().slice(..));
+
+                // log::debug!("DRAW");
+                render_pass.draw_models(
+                    objects,
+                    &self.camera_system.bind_group,
+                    &self.light_system.bind_group,
+                );
+            }
+        }
+        encoder
     }
 }

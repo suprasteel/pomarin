@@ -151,7 +151,7 @@ impl Texture {
 }
 
 // TODO: check both are used
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct TextureDescriptor {
     name: String,
     path: PathBuf,

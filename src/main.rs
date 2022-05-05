@@ -182,7 +182,9 @@ impl AppUi {
                                 label: Some("encoder"),
                             });
 
+                    // the last one wins :p
                     let encoder = egui.render(&wgpu, &window, &output_view, encoder);
+                    let encoder = rend.render(&wgpu, &window, &output_view, encoder);
                     wgpu.queue.submit(std::iter::once(encoder.finish()));
                     // objects_pass.render()
 
