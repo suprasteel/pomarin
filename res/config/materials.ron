@@ -1,3 +1,46 @@
-(
-)
-
+[
+    Texture((
+        name:"default",
+        diffuse_texture:(
+            name:"diffuse",
+            path:"default_diffuse.jpg",
+            kind:Diffuse
+        ),
+        normal_texture:(
+            name:"normal",
+            path:"default_normal.jpg",
+            kind:Normal
+        )
+    )),
+    Texture((
+        name:"wall",
+        diffuse_texture:(
+            name:"wall_diffuse",
+            path:"wall_diffuse.jpg",
+            kind:Diffuse
+        ),
+        normal_texture:(
+            name:"wall_normal",
+            path:"wall_normal.jpg",
+            kind:Normal
+        )
+    )),
+    Color((
+        name:"color_001",
+        ambient:(0.1,0.2,0.3),
+        diffuse:(0.5,0.6,0.7),
+        specular:(0.5,0.5,0.5)
+    )),
+    Color((
+        name:"grey",
+        ambient:(0.1,0.1,0.1),
+        diffuse:(0.2,0.2,0.2),
+        specular:(0.3,0.3,0.3)
+    )),
+    Color((
+        name:"white",
+        ambient:(0.2,0.2,0.2),
+        diffuse:(0.5,0.5,0.5),
+        specular:(0.8,0.8,0.8)
+    ))
+]

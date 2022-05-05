@@ -1,9 +1,0 @@
-(
-    name: "house",
-    source: Obj("file.obj"),
-    geometries: [
-        (name:"window"),
-        (name:"door"),
-        (name:"wall")
-    ]
-)

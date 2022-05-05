@@ -10,7 +10,6 @@ use super::{
     mesh::{MeshBuf, MeshDescriptor},
     pipeline::NamedPipeline,
     resources::NamedHandle,
-    store::Store,
     wgpu_state::WgpuResourceLoader,
 };
 

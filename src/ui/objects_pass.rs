@@ -58,17 +58,17 @@ impl ObjectsPass {
         let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
 
         let textured_model_pipeline = NamedPipeline::new(
-            "textures_ppln",
+            "textures_pipeline",
             create_textured_model_pipeline(&wgpu.device, &wgpu.config, &camera_bgl, &light_bgl),
             vec![MaterialKind::Texture],
         );
         let colored_model_pipeline = NamedPipeline::new(
-            "colors_ppln",
+            "colors_pipeline",
             create_colored_model_pipeline(&wgpu.device, &wgpu.config, &camera_bgl, &light_bgl),
             vec![MaterialKind::Color],
         );
         let light_pipeline = NamedPipeline::new(
-            "light_ppln",
+            "light_pipeline",
             create_light_pipeline(&wgpu.device, &wgpu.config, &camera_bgl, &light_bgl),
             vec![],
         );
