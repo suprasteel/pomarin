@@ -49,7 +49,7 @@ impl EventEmitter<PomarinEvent> for EguiRoutine {
 
 impl epi::App for EguiRoutine {
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame) {
-        egui::Area::new("test")
+        egui::Window::new("test")
             .fixed_pos(egui::pos2(10.0, 10.0))
             .show(ctx, |ui| {
                 if ui.button("Close").clicked() {
@@ -196,7 +196,7 @@ where
                 &output_view,
                 &paint_jobs,
                 &screen_descriptor,
-                Some(wgpu::Color::BLACK),
+                None, // Some(wgpu::Color::BLACK),
             )
             .unwrap();
 
