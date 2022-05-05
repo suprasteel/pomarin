@@ -1,5 +1,6 @@
-use std::{fmt::Debug, ops::Deref};
+use std::{fmt::Debug, ops::Deref, rc::Rc};
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use wgpu::util::DeviceExt;
 
@@ -7,6 +8,7 @@ use super::{
     error::MaterialError,
     resources::NamedHandle,
     texture::{self, TextureDescriptor},
+    wgpu_state::{WgpuResourceLoader, WgpuState},
 };
 
 #[derive(Clone, Copy, Hash, PartialEq, std::cmp::Eq, Debug)]
@@ -254,6 +256,15 @@ pub enum MaterialDescriptor {
     Color(ColorMaterialDescriptor),
 }
 
+impl NamedHandle<MaterialName> for MaterialDescriptor {
+    fn name(&self) -> MaterialName {
+        match self {
+            MaterialDescriptor::Color(color) => color.name(),
+            MaterialDescriptor::Texture(texture) => texture.name(),
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TextureMaterialDescriptor {
     name: String,
@@ -270,9 +281,9 @@ impl NamedHandle<MaterialName> for TextureMaterialDescriptor {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ColorMaterialDescriptor {
     name: String,
-    ambient: [f32; 3],
-    diffuse: [f32; 3],
-    specular: f32,
+    pub ambient: [f32; 3],
+    pub diffuse: [f32; 3],
+    pub specular: [f32; 3],
 }
 
 impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
@@ -298,16 +309,40 @@ impl std::fmt::Display for MaterialName {
     }
 }
 
-/* pub fn _build(&self, device: &wgpu::Device, queue: &wgpu::Queue) -> Result<TextureMaterial> {
-let (name, diffuse, normal) = self.unwrap()?;
+impl WgpuResourceLoader for MaterialDescriptor {
+    type Output = Rc<dyn Material>;
 
-let diffuse_texture = Rc::new(Texture::load(device, queue, diffuse.0, true)?);
-let normal_texture = Rc::new(Texture::load(device, queue, normal.1, true)?);
+    fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        if wgpu_state.store.contains_material(&self.name()) {
+            return Ok(wgpu_state
+                .store
+                .get_material(&self.name().deref())
+                .expect("Impossible err 4"));
+        }
+        let material: Rc<dyn Material> = match self {
+            MaterialDescriptor::Color(color) => {
+                let material = ColorMaterial::new(
+                    &wgpu_state.device,
+                    color.name().deref(),
+                    color.ambient,
+                    color.diffuse,
+                    color.specular,
+                );
+                Rc::new(material)
+            }
+            MaterialDescriptor::Texture(texture) => {
+                let diffuse = texture.diffuse_texture.load(wgpu_state)?;
+                let normal = texture.normal_texture.load(wgpu_state)?;
 
-Ok(TextureMaterial::new(
-device,
-name.clone(),
-&diffuse_texture,
-&normal_texture,
-))
-}*/
+                Rc::new(TextureMaterial::new(
+                    &wgpu_state.device,
+                    texture.name().deref(),
+                    diffuse.as_ref(),
+                    normal.as_ref(),
+                ))
+            }
+        };
+        wgpu_state.store.add_material(material.clone());
+        Ok(material)
+    }
+}

@@ -38,7 +38,7 @@ pub struct ObjectsPass {
 }
 
 impl ObjectsPass {
-    fn new(wgpu: &WgpuState, window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
+    fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         // load assets descriptions
 
         //        let meshes = read_mesh_descriptors(file);

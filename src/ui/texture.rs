@@ -6,6 +6,7 @@ use std::{
     fmt::Display,
     ops::Deref,
     path::{Path, PathBuf},
+    rc::Rc,
 };
 
 use super::{error::TextureError, wgpu_state::WgpuResourceLoader};
@@ -158,19 +159,25 @@ pub struct TextureDescriptor {
 }
 
 impl WgpuResourceLoader for TextureDescriptor {
-    type Output = Texture;
+    type Output = Rc<Texture>;
 
     fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
         if wgpu_state.store.contains_texture(&self.name) {
-            return Err(anyhow!("texture {} already loaded", &self.name));
+            return Ok(wgpu_state
+                .store
+                .get_texture(&self.name)
+                .expect("Impossible err 2"));
         }
         let is_normal_map = self.kind == TextureKind::Normal;
-        Texture::load(
+        let texture = Texture::load(
             &wgpu_state.device,
             &wgpu_state.queue,
             &self.path,
             is_normal_map,
-        )
+        )?;
+        let texture = Rc::new(texture);
+        wgpu_state.store.add_texture(&self.name, texture.clone());
+        Ok(texture.clone())
     }
 }
 

@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::Deref};
+use std::{fmt::Display, ops::Deref, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -60,9 +60,15 @@ impl MeshDescriptor {
 
 /// Builds the MeshBuf using wgpu state
 impl WgpuResourceLoader for MeshDescriptor {
-    type Output = MeshBuf;
+    type Output = Rc<MeshBuf>;
 
     fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        if wgpu_state.store.contains_mesh(&self.name) {
+            return Ok(wgpu_state
+                .store
+                .get_mesh(&self.name)
+                .expect("Impossible err 3"));
+        }
         let geometries_vertices = self.source.load()?;
 
         let geometries = geometries_vertices
@@ -76,10 +82,12 @@ impl WgpuResourceLoader for MeshDescriptor {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(MeshBuf {
+        let mesh = Rc::new(MeshBuf {
             name: self.name.to_string(),
             geometries,
-        })
+        });
+        wgpu_state.store.add_mesh(mesh.clone());
+        Ok(mesh)
     }
 }
 

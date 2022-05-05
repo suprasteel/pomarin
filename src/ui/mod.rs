@@ -69,6 +69,7 @@ pub mod resources {
 }
 
 pub mod wgpu_state {
+
     use anyhow::Result;
     use winit::dpi::PhysicalSize;
 
@@ -147,6 +148,8 @@ pub mod wgpu_state {
 
     pub trait WgpuResourceLoader {
         type Output;
+
+        /// load resource if not already in store
         fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output>;
     }
 }

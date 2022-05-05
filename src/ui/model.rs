@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 use super::{
     error::ModelError,
     geometry::GeometryName,
-    instance::RawInstanceTrait,
     material::{Material, MaterialName},
     mesh::{MeshBuf, MeshDescriptor},
     pipeline::NamedPipeline,
     resources::NamedHandle,
     store::Store,
+    wgpu_state::WgpuResourceLoader,
 };
 
 impl Ord for Model {
@@ -180,20 +180,14 @@ pub struct ModelDescriptor {
     pipeline_name: String, // Pipeline descriptor...
 }
 
-/*impl WgpuResourceLoader for ModelDescriptor {
-    type Output = Model<I>;
+impl WgpuResourceLoader for ModelDescriptor {
+    type Output = Rc<Model>;
 
     fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
-        todo!()
-    }
-}*/
-
-impl ModelDescriptor {
-    /// builds a model from resources available in store (resources have to be loaded beforehand)
-    pub fn build_model_from_store_resources<I>(&self, store: &Store) -> Result<Model>
-    where
-        I: RawInstanceTrait + std::fmt::Debug,
-    {
+        let store = &wgpu_state.store;
+        if store.contains_model(&self.name) {
+            return Ok(store.get_model(&self.name).expect("Impossible error 1"));
+        }
         let model_name = self.name.clone();
         let mesh_name = self.mesh_desc.name();
         let pipeline_name = self.pipeline_name.clone();
@@ -213,27 +207,27 @@ impl ModelDescriptor {
             }
         })?;
 
-        match (self.geometries_materials.len(), pipeline.needs_material()) {
+        let model = match (self.geometries_materials.len(), pipeline.needs_material()) {
             (0, false) => {
                 // no material and pipeline does not use any
                 let model = Model::new(model_name, pipeline, mesh.clone());
-                return Ok(model);
+                Ok(model)
             }
             (mat_cnt, false) if mat_cnt != 0 => {
                 // fount material whereas pipeline doesnt use any
-                return Err(anyhow!(ModelError::InvalidMaterialAndPipeline {
+                Err(anyhow!(ModelError::InvalidMaterialAndPipeline {
                     model: model_name.clone(),
                     pipeline: pipeline_name.clone(),
                     reason: "Pipeline does not expect material".to_string()
-                }));
+                }))
             }
             (mat_cnt, true) if mat_cnt != self.mesh_desc.count_geometries() => {
-                return Err(anyhow!(ModelError::InvalidMaterialCount {
+                Err(anyhow!(ModelError::InvalidMaterialCount {
                     model_name: model_name.clone(),
                     mesh_name: mesh_name.clone(),
                     descriptor_materials_count: mat_cnt,
                     model_geometries_count: self.mesh_desc.count_geometries(),
-                }));
+                }))
             }
             _ => {
                 let mut model = Model::new(model_name.clone(), pipeline, mesh.clone());
@@ -257,6 +251,10 @@ impl ModelDescriptor {
 
                 Ok(model)
             }
-        }
+        }?;
+
+        let model = Rc::new(model);
+        store.add_model(model.clone());
+        Ok(model)
     }
 }
