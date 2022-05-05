@@ -63,9 +63,6 @@ impl ObjectsPass {
     pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         let emitter = Arc::new(Emitter::new(event_loop));
 
-        // Define object
-        // load object assets
-        // create renderable object
         let object = Object::new("test".to_string(), ModelName::from("zodiac"));
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
@@ -171,9 +168,9 @@ impl ObjectsPass {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
+                            r: 0.0,
+                            g: 0.05,
+                            b: 0.1,
                             a: 1.0,
                         }),
                         store: true,
@@ -190,14 +187,8 @@ impl ObjectsPass {
             });
 
             {
-                // instances of entities
-                // entities are put in a vec
-                // an instances buffer is made from those entities and their instances
-                // drawing is done by draw for each entity instance mapped with the correct
-                // instance bytes in the instance buffer
                 render_pass.set_vertex_buffer(1, self.instances_system.buffer().slice(..));
 
-                // log::debug!("DRAW");
                 render_pass.draw_models(
                     objects,
                     &self.camera_system.bind_group,

@@ -21,9 +21,6 @@ pub struct Model {
     pub pipeline: Rc<NamedPipeline>,
     pub mesh: Rc<MeshBuf>,
     pub materials: Vec<Rc<dyn Material>>,
-    //TODO: delete both
-    /*instances: RefCell<Vec<I>>,
-    instances_names: RefCell<Vec<String>>,*/
 }
 
 impl Model {
@@ -39,67 +36,6 @@ impl Model {
     pub fn name(&self) -> String {
         self.name.clone()
     }
-
-    /*    pub fn instances_count(&self) -> u32 {
-              self.instances.borrow().len() as u32
-              }
-
-              pub fn instances(&self) -> Vec<I> {
-              self.instances.borrow().to_vec()
-              }
-
-        // set instance by name for this entity
-        pub fn set_instance<S: AsRef<str>>(&self, name: S, instance: I) {
-        let push_it = |name, instance: I| {
-        self.instances.borrow_mut().push(instance);
-        self.instances_names.borrow_mut().push(name);
-        };
-        let name = name.as_ref().to_string();
-        if self.instances.borrow().len() == 0 {
-        push_it(name, instance);
-        } else {
-        let item_index = self
-        .instances_names
-        .borrow()
-        .iter()
-        .position(|instance_name| instance_name == &name);
-        match item_index {
-        Some(index) => {
-        log::debug!("replace instance {} in entity", index);
-        log::debug!("instances len {}", self.instances.borrow().len());
-        dbg!(self.instances.borrow()[index]);
-        {
-        // self.instances.borrow_mut().push(instance);
-
-        let _ =
-        std::mem::replace(&mut self.instances.borrow_mut()[index], instance);
-        }
-        log::debug!("instances len {}", self.instances.borrow().len());
-        dbg!(self.instances.borrow()[index]);
-        }
-        None => {
-        log::debug!("add instance {} in entity {}", name.clone(), self.name());
-        push_it(name, instance);
-        }
-        }
-        }
-        }
-
-        // rm instance by name for this entity
-        pub fn _rm_instance(&self, name: String) {
-        let item_index = self
-        .instances_names
-        .borrow()
-        .iter()
-        .position(|instance_name| instance_name == &name);
-        match item_index {
-        Some(index) => {
-        self.instances.borrow_mut().remove(index);
-        self.instances_names.borrow_mut().remove(index);
-        }
-        None => { /* should emit err */ }
-    }
-    }*/
 }
 
 /// # Describe a model.

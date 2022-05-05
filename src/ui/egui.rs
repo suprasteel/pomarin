@@ -1,7 +1,7 @@
 use std::{sync::Arc, time::Instant};
 
 use anyhow::{anyhow, Result};
-use egui::FontDefinitions;
+use egui::{Align2, FontDefinitions};
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 use egui_winit_platform::{Platform, PlatformDescriptor};
 use winit::{event_loop::EventLoop, window::Window};
@@ -11,18 +11,12 @@ use crate::{Emitter, PomarinEvent, WgpuRpass, WgpuState};
 use super::event::EventEmitter;
 
 pub struct EguiRoutine {
-    name: String,
-    age: u32,
     emitter: Option<Arc<Emitter<PomarinEvent>>>,
 }
 
 impl Default for EguiRoutine {
     fn default() -> Self {
-        Self {
-            name: "Arthur".to_owned(),
-            age: 42,
-            emitter: None,
-        }
+        Self { emitter: None }
     }
 }
 
@@ -49,22 +43,17 @@ impl EventEmitter<PomarinEvent> for EguiRoutine {
 
 impl epi::App for EguiRoutine {
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame) {
-        egui::Window::new("test")
-            .fixed_pos(egui::pos2(10.0, 10.0))
+        egui::Window::new("")
+            .title_bar(false)
+            .resizable(false)
+            .anchor(Align2::RIGHT_TOP, [-10.0, 10.0])
             .show(ctx, |ui| {
-                if ui.button("Close").clicked() {
-                    self.close_app().err().map(|e| log::error!("{:?}", e));
-                    _frame.quit();
-                }
                 ui.horizontal(|ui| {
-                    ui.label("Your name: ");
-                    ui.text_edit_singleline(&mut self.name);
+                    if ui.button("Close").clicked() {
+                        self.close_app().err().map(|e| log::error!("{:?}", e));
+                        _frame.quit();
+                    }
                 });
-                ui.add(egui::Slider::new(&mut self.age, 0..=120).text("age"));
-                if ui.button("Click each year").clicked() {
-                    self.age += 1;
-                }
-                ui.label(format!("Hello '{}', age {}", self.name, self.age));
             });
     }
 

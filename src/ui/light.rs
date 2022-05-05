@@ -16,7 +16,7 @@ impl LightUniformTrait for LightUniform {
         let position: cgmath::Vector3<_> = self.position.into();
         Self {
             position: (cgmath::Quaternion::from_axis_angle(
-                (0.0, 1.0, 0.0).into(),
+                (0.0, 10.0, 0.0).into(),
                 cgmath::Deg(60.0 * dt.as_secs_f32()),
             ) * position)
                 .into(),

@@ -37,13 +37,6 @@ pub enum ModelError {
         material: MaterialName,
         model: ModelName,
     },
-    #[error("Model {model} (mesh {mesh}) cannot use material {material} due to : {reason}")]
-    IncompatibleModelMaterial {
-        model: ModelName,
-        mesh: String,
-        material: String,
-        reason: String,
-    },
     #[error("Missing field {field} when trying to build {model} model description")]
     IncompleteModelDescription { model: String, field: String },
     #[error(
