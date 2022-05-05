@@ -1,13 +1,16 @@
+use cgmath::Zero;
+
+use super::instance::InstanceRaw;
 use super::model::ModelName;
 
 #[derive(PartialEq, Debug)]
 pub struct Object {
     name: String,
     model: ModelName,
-    position: [f32; 3],
-    orientation: [f32; 4],
-    mesh_scale: f32,
-    opacity: f32,
+    pub position: cgmath::Vector3<f32>,
+    pub orientation: cgmath::Quaternion<f32>,
+    pub mesh_scale: f32,
+    pub opacity: f32,
 }
 
 impl Object {
@@ -15,8 +18,8 @@ impl Object {
         Self {
             name,
             model,
-            position: [0.0, 0.0, 0.0],
-            orientation: [0.0, 0.0, 0.0, 0.0],
+            position: cgmath::Vector3::new(10.0, 10.0, 10.0),
+            orientation: cgmath::Quaternion::zero(),
             mesh_scale: 1.0,
             opacity: 1.0,
         }
@@ -37,18 +40,22 @@ impl PartialOrd for Object {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
-        match self.position.partial_cmp(&other.position) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.orientation.partial_cmp(&other.orientation) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
         match self.mesh_scale.partial_cmp(&other.mesh_scale) {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
         self.opacity.partial_cmp(&other.opacity)
+    }
+}
+
+impl Into<InstanceRaw> for Object {
+    fn into(self) -> InstanceRaw {
+        InstanceRaw {
+            model: (cgmath::Matrix4::from_translation(self.position)
+                * cgmath::Matrix4::from(self.orientation)
+                * cgmath::Matrix4::from_scale(self.mesh_scale))
+            .into(),
+            normal: cgmath::Matrix3::from(self.orientation).into(),
+        }
     }
 }

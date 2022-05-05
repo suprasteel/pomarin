@@ -11,6 +11,8 @@ use super::event::{Emitter, PomarinEvent};
 use super::instance::{InstanceRaw, InstancesSystem};
 use super::light::{self, LightUniform};
 use super::material::MaterialKind;
+use super::model::{ModelDescriptor, ModelName};
+use super::object::Object;
 use super::pipeline::{
     create_colored_model_pipeline, create_light_pipeline, create_textured_model_pipeline,
     NamedPipeline,
@@ -47,6 +49,7 @@ impl ObjectsPass {
         // Define object
         // load object assets
         // create renderable object
+        let mut object_instance = Object::new("test".to_string(), ModelName::from("zodiac"));
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
         let (light_bgl, light) = light::LightSystem::init(LightUniform::default(), &wgpu.device);
@@ -74,6 +77,11 @@ impl ObjectsPass {
         wgpu.store.add_pipeline(Rc::new(textured_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(colored_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(light_pipeline));
+
+        let zod = wgpu
+            .assets
+            .find(ModelName::from("zodiac"))
+            .map(|z| ModelDescriptor::try_from(z).map(|z| zd.load()));
 
         Self {
             emitter,
