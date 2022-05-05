@@ -14,6 +14,7 @@ use winit::{
 use crate::ui::{
     egui::{EguiRoutine, EguiWgpuPassBuilder},
     event::PomarinEvent,
+    loader::example_model,
 };
 
 const APP_NAME: &'static str = "Pomarin";
@@ -31,6 +32,8 @@ fn main() {
 
     env_logger::init();
     log::info!("Initialized environment and logger");
+
+    example_model();
 
     let mut ui = AppUi::new();
     ui.set_max_fps(60);

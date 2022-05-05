@@ -38,6 +38,14 @@ pub struct GeometryDescriptor {
     // vertex type ?
 }
 
+impl From<&str> for GeometryDescriptor {
+    fn from(value: &str) -> Self {
+        GeometryDescriptor {
+            name: value.to_string(),
+        }
+    }
+}
+
 /// # Geometry vertices and indices
 ///
 /// The container of the raw vertices the geometry is made of

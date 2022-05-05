@@ -158,6 +158,12 @@ pub struct TextureDescriptor {
     kind: TextureKind,
 }
 
+impl TextureDescriptor {
+    pub fn _new_(name: String, path: PathBuf, kind: TextureKind) -> Self {
+        Self { name, path, kind }
+    }
+}
+
 impl WgpuResourceLoader for TextureDescriptor {
     type Output = Rc<Texture>;
 

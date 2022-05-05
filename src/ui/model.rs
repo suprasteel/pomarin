@@ -176,8 +176,24 @@ impl Model {
 pub struct ModelDescriptor {
     name: String,
     mesh_desc: MeshDescriptor,
-    geometries_materials: Vec<(GeometryName, MaterialName)>,
+    pub(crate) geometries_materials: Vec<(GeometryName, MaterialName)>,
     pipeline_name: String, // Pipeline descriptor...
+}
+
+impl ModelDescriptor {
+    pub fn _new_(
+        name: String,
+        mesh_desc: MeshDescriptor,
+        geometries_materials: Vec<(GeometryName, MaterialName)>,
+        pipeline_name: String,
+    ) -> Self {
+        Self {
+            name,
+            mesh_desc,
+            geometries_materials,
+            pipeline_name,
+        }
+    }
 }
 
 impl WgpuResourceLoader for ModelDescriptor {

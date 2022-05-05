@@ -45,6 +45,19 @@ pub struct MeshDescriptor {
 }
 
 impl MeshDescriptor {
+    ///to be dezleted
+    pub fn _new_(
+        name: String,
+        source: VerticesSource,
+        geometries: Vec<GeometryDescriptor>,
+    ) -> Self {
+        Self {
+            name,
+            source,
+            geometries,
+        }
+    }
+
     pub fn count_geometries(&self) -> usize {
         self.geometries.len()
     }

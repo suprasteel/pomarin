@@ -268,8 +268,23 @@ impl NamedHandle<MaterialName> for MaterialDescriptor {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TextureMaterialDescriptor {
     name: String,
-    diffuse_texture: TextureDescriptor,
-    normal_texture: TextureDescriptor,
+    pub diffuse_texture: TextureDescriptor,
+    pub normal_texture: TextureDescriptor,
+}
+
+//TODO: delete after made better
+impl TextureMaterialDescriptor {
+    pub fn _new_(
+        name: String,
+        diffuse_texture: TextureDescriptor,
+        normal_texture: TextureDescriptor,
+    ) -> Self {
+        Self {
+            name,
+            diffuse_texture,
+            normal_texture,
+        }
+    }
 }
 
 impl NamedHandle<MaterialName> for TextureMaterialDescriptor {
@@ -286,6 +301,17 @@ pub struct ColorMaterialDescriptor {
     pub specular: [f32; 3],
 }
 
+impl ColorMaterialDescriptor {
+    pub fn _new_(name: String, ambient: [f32; 3], diffuse: [f32; 3], specular: [f32; 3]) -> Self {
+        Self {
+            name,
+            ambient,
+            diffuse,
+            specular,
+        }
+    }
+}
+
 impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
     fn name(&self) -> MaterialName {
         MaterialName(self.name.clone())
@@ -294,6 +320,12 @@ impl NamedHandle<MaterialName> for ColorMaterialDescriptor {
 
 #[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone)]
 pub struct MaterialName(String);
+
+impl From<&str> for MaterialName {
+    fn from(value: &str) -> Self {
+        MaterialName(value.to_string())
+    }
+}
 
 impl Deref for MaterialName {
     type Target = String;
