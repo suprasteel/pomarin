@@ -71,15 +71,10 @@ pub mod resources {
 
 pub mod wgpu_state {
 
+    use super::store::Store;
+    use crate::settings::{assets::AssetsDescriptors, config::ResourcesConfig, utils::load_assets};
     use anyhow::Result;
     use winit::dpi::PhysicalSize;
-
-    use crate::settings::{
-        assets::{load_assets, AssetsDescriptors},
-        config::ResourcesConfig,
-    };
-
-    use super::store::Store;
 
     pub struct WgpuState {
         // app conf
@@ -91,12 +86,13 @@ pub mod wgpu_state {
         pub queue: wgpu::Queue,
         pub surface_format: wgpu::TextureFormat,
         pub assets: AssetsDescriptors,
+        pub settings: ResourcesConfig,
         pub store: Store,
     }
 
     // retain wgpu state
     impl WgpuState {
-        pub(crate) fn init(window: &winit::window::Window, assets_conf: &ResourcesConfig) -> Self {
+        pub(crate) fn init(window: &winit::window::Window, settings: &ResourcesConfig) -> Self {
             // should read config files and load models during init
             // let mut wgpu_context = pollster::block_on(Wgpu::new(&window));
             let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
@@ -131,7 +127,7 @@ pub mod wgpu_state {
             surface.configure(&device, &config);
 
             let store = Store::new();
-            let assets = load_assets(assets_conf).expect("asset loading failure");
+            let assets = load_assets(settings).expect("asset loading failure");
 
             Self {
                 instance,
@@ -142,6 +138,7 @@ pub mod wgpu_state {
                 queue,
                 surface_format,
                 assets,
+                settings: settings.to_owned(),
                 store,
             }
         }

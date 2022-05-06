@@ -17,7 +17,7 @@ impl LightUniformTrait for LightUniform {
         Self {
             position: (cgmath::Quaternion::from_axis_angle(
                 (0.0, 10.0, 0.0).into(),
-                cgmath::Deg(60.0 * dt.as_secs_f32()),
+                cgmath::Deg(10.0 * dt.as_secs_f32()),
             ) * position)
                 .into(),
             _padding: 0,
@@ -35,7 +35,7 @@ pub trait LightUniformTrait: Copy + Clone + bytemuck::Pod + bytemuck::Zeroable {
 impl Default for LightUniform {
     fn default() -> Self {
         Self {
-            position: [1.0, 0.0, 0.0],
+            position: [10.0, 0.0, 0.0],
             _padding: 0,
             color: [1.0, 1.0, 1.0],
             _padding2: 0,

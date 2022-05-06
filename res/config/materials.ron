@@ -1,29 +1,18 @@
 [
     Texture((
         name:"default",
-        diffuse_texture:(
-            name:"diffuse",
-            path:"default_diffuse.jpg",
-            kind:Diffuse
-        ),
-        normal_texture:(
-            name:"normal",
-            path:"default_normal.jpg",
-            kind:Normal
-        )
+        diffuse_texture:("d_default"),
+        normal_texture:("n_default")
     )),
     Texture((
         name:"wall",
-        diffuse_texture:(
-            name:"wall_diffuse",
-            path:"wall_diffuse.jpg",
-            kind:Diffuse
-        ),
-        normal_texture:(
-            name:"wall_normal",
-            path:"wall_normal.jpg",
-            kind:Normal
-        )
+        diffuse_texture:("d_wall"),
+        normal_texture:("n_wall")
+    )),
+    Texture((
+        name:"sea",
+        diffuse_texture:("d_sea"),
+        normal_texture:("n_sea")
     )),
     Color((
         name:"color_001",

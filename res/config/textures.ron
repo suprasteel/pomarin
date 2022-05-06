@@ -1,22 +1,32 @@
 [
     (
-        name:"t_d_wall",
+        name:"d_wall",
         path:"wall_diffuse.jpg",
         kind:Diffuse
     ),
     (
-        name:"t_n_wall",
-        path:"wall_normal.jpg",
+        name:"n_wall",
+        path:"wall_normal.png",
         kind:Normal
     ),
     (
-        name:"t_d_default",
-        path:"default_diffuse.jpg",
+        name:"d_default",
+        path:"default_diffuse.png",
         kind:Diffuse
     ),
     (
-        name:"t_n_default",
-        path:"default_normal.jpg",
+        name:"n_default",
+        path:"default_normal.png",
+        kind:Normal
+    ),
+    (
+        name:"d_sea",
+        path:"sea_diffuse.png",
+        kind:Diffuse
+    ),
+    (
+        name:"n_sea",
+        path:"sea_normal.jpg",
         kind:Normal
     )
 ]

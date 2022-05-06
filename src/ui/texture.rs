@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use image::GenericImageView;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -33,11 +33,12 @@ impl Texture {
         is_normal_map: bool,
     ) -> Result<Self> {
         // use load & texture as target ?
-        debug!(target: "load", "Loading texture from file {:?}", path.as_ref().to_str());
+        log::info!("Loading texture from file {:?}", path.as_ref().to_str());
         let path_copy = path.as_ref().to_path_buf();
         let label = path_copy.to_str();
 
-        let img = image::open(path)?;
+        let img = image::open(path.as_ref())
+            .context(format!("cannot open texture {:?}", path.as_ref()))?;
         Self::from_image(device, queue, &img, label, is_normal_map)
     }
 
@@ -168,6 +169,15 @@ impl WgpuResourceLoader for TextureDescriptor {
     type Output = Rc<Texture>;
 
     fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+        log::info!("Load {}", self.name);
+        let directory = PathBuf::from(wgpu_state.settings.textures_directory.to_string());
+
+        log::info!(
+            "Load texture file from : {:?} (textures directory is: {:?})",
+            self.path,
+            directory
+        );
+
         if wgpu_state.store.contains_texture(&self.name) {
             return Ok(wgpu_state
                 .store
@@ -178,7 +188,7 @@ impl WgpuResourceLoader for TextureDescriptor {
         let texture = Texture::load(
             &wgpu_state.device,
             &wgpu_state.queue,
-            &self.path,
+            directory.join(&self.path),
             is_normal_map,
         )?;
         let texture = Rc::new(texture);

@@ -1,7 +1,7 @@
 [
     (
         name:"texture_zod",
-        mesh:("house"),
+        mesh:("zodiac"),
         geometries_materials:[
             (("hull"),("wall")),
             (("inflatable"),("default"))
@@ -16,5 +16,23 @@
             (("inflatable"),("grey"))
         ],
         pipeline_name:"colors_pipeline"
-    )
+    ),
+    (
+        name:"sea_square",
+        mesh:("sea"),
+        geometries_materials:[
+            (("surface"),("sea")),
+        ],
+        pipeline_name:"textures_pipeline"
+    ),
+    (
+        name:"fake_terrain",
+        mesh:("terrain"),
+        geometries_materials:[
+            (("terrain"),("wall")),
+        ],
+        pipeline_name:"textures_pipeline"
+    ),
+
+
 ]

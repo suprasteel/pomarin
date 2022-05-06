@@ -1,4 +1,4 @@
-use crate::ui::mesh::MeshName;
+use crate::ui::{mesh::MeshName, texture::TextureName};
 
 use super::{
     geometry::{GeometryDescriptor, GeometryName},
@@ -7,7 +7,6 @@ use super::{
     },
     mesh::{MeshDescriptor, VerticesSource},
     model::ModelDescriptor,
-    texture::{TextureDescriptor, TextureKind},
 };
 
 pub fn example_model() {
@@ -57,29 +56,13 @@ pub fn example_model() {
     let materials: Vec<MaterialDescriptor> = vec![
         MaterialDescriptor::Texture(TextureMaterialDescriptor::_new_(
             "default".to_string(),
-            TextureDescriptor::_new_(
-                "diffuse".to_string(),
-                "default_diffuse.jpg".to_string().into(),
-                TextureKind::Diffuse,
-            ),
-            TextureDescriptor::_new_(
-                "normal".to_string(),
-                "default_normal.jpg".to_string().into(),
-                TextureKind::Normal,
-            ),
+            TextureName::from("d_default"),
+            TextureName::from("n_default"),
         )),
         MaterialDescriptor::Texture(TextureMaterialDescriptor::_new_(
             "wall".to_string(),
-            TextureDescriptor::_new_(
-                "wall_diffuse".to_string(),
-                "wall_diffuse.jpg".to_string().into(),
-                TextureKind::Diffuse,
-            ),
-            TextureDescriptor::_new_(
-                "wall_normal".to_string(),
-                "wall_normal.jpg".to_string().into(),
-                TextureKind::Normal,
-            ),
+            TextureName::from("d_wall"),
+            TextureName::from("n_wall"),
         )),
         MaterialDescriptor::Color(ColorMaterialDescriptor::_new_(
             "color_001".to_string(),

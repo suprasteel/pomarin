@@ -1,6 +1,6 @@
-use std::{fmt::Display, ops::Deref, rc::Rc};
+use std::{fmt::Display, ops::Deref, path::PathBuf, rc::Rc};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -45,7 +45,7 @@ pub struct MeshDescriptor {
 }
 
 impl MeshDescriptor {
-    ///to be dezleted
+    ///to be deleted
     pub fn _new_(
         name: String,
         source: VerticesSource,
@@ -76,13 +76,13 @@ impl WgpuResourceLoader for MeshDescriptor {
     type Output = Rc<MeshBuf>;
 
     fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        log::info!("load {}", self.name());
+
         if wgpu_state.store.contains_mesh(&self.name) {
-            return Ok(wgpu_state
-                .store
-                .get_mesh(&self.name)
-                .expect("Impossible err 3"));
+            return Ok(wgpu_state.store.get_mesh(&self.name).unwrap());
         }
-        let geometries_vertices = self.source.load()?;
+
+        let geometries_vertices = self.source.load(wgpu_state)?;
 
         let geometries = geometries_vertices
             .iter()
@@ -147,7 +147,7 @@ pub enum VerticesSource {
 }
 
 impl VerticesSource {
-    fn load(&self) -> Result<Vec<GeometryVertices<ModelVertex>>> {
+    fn _load(&self) -> Result<Vec<GeometryVertices<ModelVertex>>> {
         match &self {
             VerticesSource::Obj(path) => {
                 let (obj_models, _) = tobj::load_obj(
@@ -157,7 +157,42 @@ impl VerticesSource {
                         single_index: true,
                         ..Default::default()
                     },
-                )?;
+                )
+                .context(format!("Failed to load obj file {}", path.to_string()))?;
+                Ok(obj_models
+                    .into_iter()
+                    .map(|tobj_model| {
+                        let mut vertices = Vec::new();
+                        ModelVertex::fill_vertices_from_model(&mut vertices, &tobj_model);
+                        GeometryVertices::new(&tobj_model.name, vertices, tobj_model.mesh.indices)
+                    })
+                    .collect())
+            }
+        }
+    }
+}
+
+impl WgpuResourceLoader for VerticesSource {
+    type Output = Vec<GeometryVertices<ModelVertex>>;
+
+    fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        let directory = PathBuf::from(wgpu_state.settings.meshes_directory.to_string());
+        match &self {
+            VerticesSource::Obj(path) => {
+                log::info!("Load obj {} ({:?})", path.to_string(), directory);
+                let (obj_models, _) = tobj::load_obj(
+                    directory.join(path),
+                    &tobj::LoadOptions {
+                        triangulate: true,
+                        single_index: true,
+                        ..Default::default()
+                    },
+                )
+                .context(format!(
+                    "Failed to load obj {} ({:?})",
+                    path.to_string(),
+                    directory
+                ))?;
                 Ok(obj_models
                     .into_iter()
                     .map(|tobj_model| {

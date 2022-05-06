@@ -4,10 +4,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use wgpu::util::DeviceExt;
 
+use crate::settings::assets::TryAsRef;
+
 use super::{
     error::MaterialError,
     resources::NamedHandle,
-    texture::{self, TextureDescriptor},
+    texture::{self, Texture, TextureDescriptor, TextureName},
     wgpu_state::{WgpuResourceLoader, WgpuState},
 };
 
@@ -269,8 +271,8 @@ impl NamedHandle<MaterialName> for MaterialDescriptor {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TextureMaterialDescriptor {
     name: String,
-    pub diffuse_texture: TextureDescriptor,
-    pub normal_texture: TextureDescriptor,
+    pub diffuse_texture: TextureName,
+    pub normal_texture: TextureName,
 }
 
 //TODO: delete after made better
@@ -278,8 +280,8 @@ impl TextureMaterialDescriptor {
     pub fn _new_(
         name: String,
         //TODO: TextureName instead
-        diffuse_texture: TextureDescriptor,
-        normal_texture: TextureDescriptor,
+        diffuse_texture: TextureName,
+        normal_texture: TextureName,
     ) -> Self {
         Self {
             name,
@@ -347,11 +349,10 @@ impl WgpuResourceLoader for MaterialDescriptor {
     type Output = Rc<dyn Material>;
 
     fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
+        log::info!("load {}", self.name());
         if wgpu_state.store.contains_material(&self.name()) {
-            return Ok(wgpu_state
-                .store
-                .get_material(&self.name().deref())
-                .expect("Impossible err 4"));
+            log::info!("Hit wgpu store cache for {}", &self.name());
+            return Ok(wgpu_state.store.get_material(&self.name().deref()).unwrap());
         }
         let material: Rc<dyn Material> = match self {
             MaterialDescriptor::Color(color) => {
@@ -365,8 +366,16 @@ impl WgpuResourceLoader for MaterialDescriptor {
                 Rc::new(material)
             }
             MaterialDescriptor::Texture(texture) => {
-                let diffuse = texture.diffuse_texture.load(wgpu_state)?;
-                let normal = texture.normal_texture.load(wgpu_state)?;
+                let diffuse: Rc<Texture> = wgpu_state
+                    .assets
+                    .get(texture.diffuse_texture.clone())
+                    .and_then(|desc| desc.try_as_ref())
+                    .and_then(|descriptor: &TextureDescriptor| descriptor.load(wgpu_state))?;
+                let normal: Rc<Texture> = wgpu_state
+                    .assets
+                    .get(texture.normal_texture.clone())
+                    .and_then(|desc| desc.try_as_ref())
+                    .and_then(|descriptor: &TextureDescriptor| descriptor.load(wgpu_state))?;
 
                 Rc::new(TextureMaterial::new(
                     &wgpu_state.device,

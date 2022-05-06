@@ -32,7 +32,7 @@ impl From<WindowConfig> for Size {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct ResourcesConfig {
     /// textures as images
     pub textures_directory: String,

@@ -24,21 +24,10 @@ pub enum TextureError {
 
 #[derive(ThisError, Debug)]
 pub enum ModelError {
-    #[error("Mesh {mesh} not found in store for model {model}")]
-    MeshNotFoundInStore { mesh: MeshName, model: ModelName },
     #[error(
         "Pipeline {pipeline} not found in store while trying to build {model} model description"
     )]
     PipelineNotFoundInStore { model: ModelName, pipeline: String },
-    #[error("Geometry {geometry} not found in store for model {model}")]
-    GeometryNotFound { geometry: String, model: ModelName },
-    #[error("Material {material} not found in store for model {model}")]
-    MaterialNotFoundInStore {
-        material: MaterialName,
-        model: ModelName,
-    },
-    #[error("Missing field {field} when trying to build {model} model description")]
-    IncompleteModelDescription { model: String, field: String },
     #[error(
         "Materials count ({descriptor_materials_count}) does not match with geometries count ({model_geometries_count}) for model {model_name} (mesh: {mesh_name})"
         )]

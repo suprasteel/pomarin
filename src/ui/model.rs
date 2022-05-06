@@ -3,13 +3,16 @@ use std::{ops::Deref, rc::Rc};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::settings::assets::{AssetDescriptor, AssetName};
+use crate::{
+    settings::assets::{AssetDescriptor, TryAsRef},
+    ui::material::MaterialDescriptor,
+};
 
 use super::{
     error::ModelError,
     geometry::GeometryName,
     material::{Material, MaterialName},
-    mesh::{MeshBuf, MeshName},
+    mesh::{MeshBuf, MeshDescriptor, MeshName},
     pipeline::NamedPipeline,
     resources::NamedHandle,
     wgpu_state::WgpuResourceLoader,
@@ -94,45 +97,29 @@ impl WgpuResourceLoader for ModelDescriptor {
     /// - check that either all geometries have one material or all have none
     fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
         let store = &wgpu_state.store;
+        let assets = &wgpu_state.assets;
+        log::info!("load {}", self.name());
 
         // already loaded ? -> return wgpu store cache
         if store.contains_model(&self.name) {
-            log::info!(target: "load", "wgpu store already contains {}", self.name());
+            log::info!("Hit wgpu store cache for {}", self.name());
             return Ok(store.get_model(&self.name).unwrap());
         }
         let model_name = self.name();
         let mesh_name = &self.mesh;
 
-        let desc_not_fnd = |asset: AssetName| {
-            anyhow!(
-                "Asset descriptor {} not found (model {})",
-                asset,
-                model_name
-            )
-        };
-
         // retrieve mesh description from name in assets store
         // or err
-        let mesh_descriptor = &wgpu_state.assets.find(mesh_name.clone()).map_or_else(
-            || Err(desc_not_fnd(mesh_name.clone().into())),
-            |md| {
-                if let AssetDescriptor::Mesh(mesh) = md {
-                    Ok(mesh)
-                } else {
-                    Err(desc_not_fnd(mesh_name.clone().into()))
-                }
-            },
-        )?;
+        let mesh_descriptor: &MeshDescriptor = assets
+            .get(mesh_name.clone())
+            .and_then(|desc| desc.try_as_ref())?;
 
         let pipeline_name = self.pipeline_name.clone();
-        // load mesh from store
+
+        // load mesh from store of add it to store from desc
         let mesh = store
             .get_mesh(&mesh_name)
-            // should load mesh in this case
-            .ok_or_else(|| ModelError::MeshNotFoundInStore {
-                mesh: mesh_name.clone(),
-                model: model_name.clone(),
-            })?;
+            .map_or_else(|| mesh_descriptor.load(wgpu_state), |f| Ok(f))?;
 
         // load pipeline from store
         let pipeline = store.get_pipeline(&pipeline_name).ok_or_else(|| {
@@ -148,8 +135,8 @@ impl WgpuResourceLoader for ModelDescriptor {
                 let model = Model::new(model_name.to_string(), pipeline, mesh.clone());
                 Ok(model)
             }
-            (mat_cnt, false) if mat_cnt != 0 => {
-                // fount material whereas pipeline doesnt use any
+            (_, false) => {
+                // found some material whereas pipeline doesnt use any
                 Err(anyhow!(ModelError::InvalidMaterialAndPipeline {
                     model: model_name.clone(),
                     pipeline: pipeline_name.clone(),
@@ -165,6 +152,7 @@ impl WgpuResourceLoader for ModelDescriptor {
                 }))
             }
             _ => {
+                // maybe defer instanciation after all checks are ok ?
                 let mut model = Model::new(model_name.to_string(), pipeline, mesh.clone());
                 let geometries_names = mesh_descriptor.geometries_names();
 
@@ -176,12 +164,12 @@ impl WgpuResourceLoader for ModelDescriptor {
                             model: model_name.clone(),
                         }));
                     }
-                    let material = store.get_material(m_name.deref()).ok_or_else(|| {
-                        ModelError::MaterialNotFoundInStore {
-                            material: m_name.clone(),
-                            model: model_name.clone(),
-                        }
-                    })?;
+
+                    let material = assets
+                        .get(m_name.clone())
+                        .and_then(|desc: &AssetDescriptor| desc.try_as_ref())
+                        .and_then(|descriptor: &MaterialDescriptor| descriptor.load(wgpu_state))?;
+
                     model.materials.push(material.clone());
                 }
 
