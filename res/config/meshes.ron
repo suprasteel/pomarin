@@ -1,0 +1,31 @@
+[
+    (
+        name:"zodiac",
+        source:Obj("zodiac_001.obj"),
+        geometries:[
+            (name:"hull"),
+            (name:"inflatable")
+        ]
+    ),
+    (
+        name:"cube",
+        source:Obj("cube_001.obj"),
+        geometries:[
+            (name:"cube")
+        ]
+    ),
+    (
+        name:"sea",
+        source:Obj("surface_001.obj"),
+        geometries:[
+            (name:"surface")
+        ]
+    ),
+    (
+        name:"terrain",
+        source:Obj("subterrain_000.obj"),
+        geometries:[
+            (name:"terrain")
+        ]
+    )
+]
