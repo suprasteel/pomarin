@@ -23,13 +23,11 @@ impl InstanceRaw {
             // instance when the shader starts processing a new instance
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
-                // keep space for tangent and bitangent
                 wgpu::VertexAttribute {
                     offset: 0,
                     shader_location: 5,
                     format: wgpu::VertexFormat::Float32x4,
                 },
-                // A mat4 as 4 vec4
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                     shader_location: 6,
@@ -106,7 +104,6 @@ where
     }
 
     pub fn set_instances_raw(&mut self, mut instances: Vec<I>, queue: &wgpu::Queue) {
-        // dbg!(&instances);
         instances.truncate(MAX_INSTANCES as usize);
         self.instances_count = instances.len() as u32;
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&instances));
