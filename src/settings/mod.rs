@@ -15,7 +15,6 @@ pub mod utils {
         },
     };
 
-    //TODO: list errors without blocking all
     pub fn load_assets(config: &ResourcesConfig) -> Result<AssetsDescriptors> {
         let mut ad = AssetsDescriptors::new();
 
