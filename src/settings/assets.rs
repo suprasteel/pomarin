@@ -90,7 +90,7 @@ pub trait TryAsRef<T> {
 }
 
 impl TryAsRef<ModelDescriptor> for AssetDescriptor {
-    type Error = anyhow::Error; // AssetError;
+    type Error = anyhow::Error;
     fn try_as_ref(&self) -> Result<&ModelDescriptor, Self::Error> {
         if let AssetDescriptor::Model(model) = self {
             Ok(model)
@@ -102,8 +102,9 @@ impl TryAsRef<ModelDescriptor> for AssetDescriptor {
         }
     }
 }
+
 impl TryAsRef<MeshDescriptor> for AssetDescriptor {
-    type Error = anyhow::Error; // AssetError;
+    type Error = anyhow::Error;
     fn try_as_ref(&self) -> Result<&MeshDescriptor, Self::Error> {
         if let AssetDescriptor::Mesh(mesh) = self {
             Ok(mesh)
@@ -115,8 +116,9 @@ impl TryAsRef<MeshDescriptor> for AssetDescriptor {
         }
     }
 }
+
 impl TryAsRef<TextureDescriptor> for AssetDescriptor {
-    type Error = anyhow::Error; // AssetError;
+    type Error = anyhow::Error;
     fn try_as_ref(&self) -> Result<&TextureDescriptor, Self::Error> {
         if let AssetDescriptor::Texture(t) = self {
             Ok(t)
@@ -128,8 +130,9 @@ impl TryAsRef<TextureDescriptor> for AssetDescriptor {
         }
     }
 }
+
 impl TryAsRef<MaterialDescriptor> for AssetDescriptor {
-    type Error = anyhow::Error; // AssetError;
+    type Error = anyhow::Error;
     fn try_as_ref(&self) -> Result<&MaterialDescriptor, Self::Error> {
         if let AssetDescriptor::Material(m) = self {
             Ok(m)
@@ -158,6 +161,7 @@ impl Display for AssetDescriptor {
         write!(f, "AssetDesciptor({})", self.name().to_string())
     }
 }
+
 impl Display for AssetName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -168,21 +172,25 @@ impl Display for AssetName {
         }
     }
 }
+
 impl Into<AssetDescriptor> for TextureDescriptor {
     fn into(self) -> AssetDescriptor {
         AssetDescriptor::Texture(self)
     }
 }
+
 impl Into<AssetDescriptor> for MaterialDescriptor {
     fn into(self) -> AssetDescriptor {
         AssetDescriptor::Material(self)
     }
 }
+
 impl Into<AssetDescriptor> for MeshDescriptor {
     fn into(self) -> AssetDescriptor {
         AssetDescriptor::Mesh(self)
     }
 }
+
 impl Into<AssetDescriptor> for ModelDescriptor {
     fn into(self) -> AssetDescriptor {
         AssetDescriptor::Model(self)
@@ -200,11 +208,13 @@ impl Into<AssetName> for MaterialName {
         AssetName::Material(self)
     }
 }
+
 impl Into<AssetName> for MeshName {
     fn into(self) -> AssetName {
         AssetName::Mesh(self)
     }
 }
+
 impl Into<AssetName> for ModelName {
     fn into(self) -> AssetName {
         AssetName::Model(self)
