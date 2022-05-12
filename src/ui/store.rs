@@ -14,7 +14,6 @@ pub struct Store {
     pub meshes: RefCell<HashMap<String, Rc<MeshBuf>>>,
     /// render unit using a shader and able to process a model with its mesh and material
     pub pipelines: RefCell<HashMap<String, Rc<NamedPipeline>>>,
-    // TODO: rename to models
     /// an aggregation of material and geometries (via mesh)
     pub models: RefCell<HashMap<String, Rc<Model>>>,
     /// objects instances describing whick entity to use
