@@ -1,6 +1,6 @@
 use thiserror::Error as ThisError;
 
-use super::{geometry::GeometryName, material::MaterialName, mesh::MeshName, model::ModelName};
+use super::{geometry::GeometryName, mesh::MeshName, model::ModelName};
 
 #[derive(ThisError, Debug)]
 pub enum MaterialError {
