@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use super::event::PomarinEvent;
-
 // We need this for Rust to store our data correctly for the shaders
 #[repr(C)]
 // This is so we can store this in a buffer
@@ -103,7 +101,7 @@ where
         )
     }
 
-    pub fn update(&mut self, queue: &wgpu::Queue, dt: Duration) {
+    pub fn update(&mut self, queue: &wgpu::Queue, _dt: Duration) {
         self.uniform = self.updater.update(self.uniform);
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[self.uniform]))
     }
@@ -156,14 +154,14 @@ impl Default for ViewState {
 }
 
 pub struct OrbitController {
-    input: InputState,
+    _input: InputState,
     view: ViewState,
 }
 
 impl Default for OrbitController {
     fn default() -> Self {
         Self {
-            input: Default::default(),
+            _input: Default::default(),
             view: Default::default(),
         }
     }
@@ -203,7 +201,7 @@ impl OrbitController {
         }
     }
 
-    pub fn handle_event() {}
+    pub fn _handle_event() {}
 }
 
 #[rustfmt::skip]
