@@ -30,12 +30,14 @@ pub struct GeometryBuf {
 ///     name: "part_x"
 /// }
 /// ```
+///
+/// Note: This struct should be used to
+/// handle more parameters (options) or sanity checks
+/// like the vertex count or the kind of vertex it
+/// is made of (with or without uv, normals...)
 #[derive(Deserialize, Serialize, Debug)]
 pub struct GeometryDescriptor {
     name: String,
-    // options ?
-    // vertex count ? to check file ok ?
-    // vertex type ?
 }
 
 impl From<&str> for GeometryDescriptor {
@@ -48,7 +50,9 @@ impl From<&str> for GeometryDescriptor {
 
 /// # Geometry vertices and indices
 ///
-/// The container of the raw vertices the geometry is made of
+/// Container of the raw vertices the geometry is made of.
+///
+/// Is able to build a GeometryBuf from itself with the method to_wgpu_geometry_buffer(&device)
 ///.
 pub struct GeometryVertices<T>
 where
@@ -71,7 +75,7 @@ where
         }
     }
 
-    pub fn to_geometry(&self, device: &wgpu::Device) -> GeometryBuf {
+    pub fn to_wgpu_geometry_buffer(&self, device: &wgpu::Device) -> GeometryBuf {
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some(&format!("{:?} Vertex Buffer", self.name.to_string())),
             contents: bytemuck::cast_slice(&self.vertices),
