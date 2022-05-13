@@ -41,11 +41,44 @@ impl Model {
     }
 }
 
+/// Instanciate the resolution from the filesize    
+///    
+/// This call will fail if the file size is neither    
+/// SRTM1 (3601 * 3601 * 2) nor    
+/// SRTM3 (1201 * 1201 * 2).    
+///    
+/// # Argument    
+///    
+/// * `filesize` - the size of the file to interpret as a tile.    
+///    
+/// # Error    
+///    
+/// * `SrtmError::ResolutionError` in case of bad filesize.    
+///    
+/// # Example    
+///    
+/// ```    
+/// use easy_srtm::Resolution;    
+/// // get file size with `file.metadata()?.len()`    
+/// let resolution = Resolution::try_from(3601 * 3601 * 2);    
+/// assert_eq!(resolution.unwrap(), Resolution::SRTM1);    
+/// ```    
+///    
+
 /// # Describe a model.
 ///
 /// ## Example:
 ///
 /// ```
+///        (
+///            name:"texture_zod",
+///            mesh:("zodiac"),
+///            geometries_materials:[
+///            (("hull"),("wall")),
+///            (("inflatable"),("default"))
+///            ],
+///            pipeline_name:"textures_pipeline"
+///        ),
 /// {
 ///     name: "pink_house",
 ///     mesh: MeshName("house"),
@@ -66,6 +99,7 @@ pub struct ModelDescriptor {
     pipeline_name: String, // Pipeline descriptor...
 }
 
+// TODO: should be moved in a test
 impl ModelDescriptor {
     pub fn _new_(
         name: String,

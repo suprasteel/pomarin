@@ -17,7 +17,6 @@ use crate::{
     ui::{
         egui::{EguiRoutine, EguiWgpuPassBuilder},
         event::PomarinEvent,
-        loader::example_model,
         objects_pass::ObjectsPass,
     },
 };
@@ -37,8 +36,6 @@ fn main() {
 
     env_logger::init();
     log::info!("Initialized environment and logger");
-
-    example_model();
 
     let ui = AppUi::new(load_conf());
     let emitter = ui.get_emitter();
