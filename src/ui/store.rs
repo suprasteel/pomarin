@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use super::{
     material::Material, mesh::MeshBuf, model::Model, object::Object, pipeline::NamedPipeline,
-    texture::Texture,
+    resources::NamedHandle, texture::Texture,
 };
 
 pub struct Store {
@@ -68,7 +68,7 @@ impl Store {
     pub fn add_model(&self, entity: Rc<Model>) {
         self.models
             .borrow_mut()
-            .insert(entity.as_ref().name().clone(), entity);
+            .insert(entity.as_ref().name().to_string(), entity);
     }
 
     pub fn contains_model(&self, model: &str) -> bool {

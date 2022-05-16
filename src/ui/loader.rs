@@ -6,50 +6,59 @@ mod test {
             ColorMaterialDescriptor, MaterialDescriptor, MaterialName, TextureMaterialDescriptor,
         },
         mesh::{MeshDescriptor, MeshName, VerticesSource},
-        model::ModelDescriptor,
+        model::{ModelDescriptor, ModelName},
+        resources::NamedHandle,
         texture::TextureName,
     };
+    use anyhow::{anyhow, Result};
 
     const MODEL_ASSET_EXAMPLE_CONFIG: &'static str = r#"
         [
         (
-            name:"texture_zod",
-            mesh:("zodiac"),
+            name:"model0_name",
+            mesh:("model0_meshname"),
             geometries_materials:[
-            (("hull"),("wall")),
-            (("inflatable"),("default"))
+            (("model0_geometry0_name"),("model0_material0_name")),
+            (("model0_geometry1_name"),("model0_material1_name"))
             ],
-            pipeline_name:"textures_pipeline"
+            pipeline_name:"model0_pipeline"
         ),
         (
-            name:"color_zod",
-            mesh:("zodiac"),
+            name:"pink_house",
+            mesh:("tiny_house"),
             geometries_materials:[
-            (("hull"),("white")),
-            (("inflatable"),("grey"))
+            (("wall_geometry"),("pink_material")),
+            (("door_geometry"),("wood_material"))
             ],
-            pipeline_name:"colors_pipeline"
+            pipeline_name:"model1_pipeline"
         ),
         (
-            name:"sea_square",
-            mesh:("sea"),
+            name:"green_house",
+            mesh:("tiny_house"),
             geometries_materials:[
-            (("surface"),("sea")),
+            (("wall_geometry"),("green_material")),
+            (("door_geometry"),("wood_material"))
             ],
-            pipeline_name:"textures_pipeline"
+            pipeline_name:"model2_pipeline"
         ),
         (
-            name:"fake_terrain",
-            mesh:("terrain"),
+            name:"alien",
+            mesh:("body"),
             geometries_materials:[
-            (("terrain"),("wall")),
+            (("skin"),("green")),
             ],
-            pipeline_name:"textures_pipeline"
+            pipeline_name:"model3_pipeline"
         ),
-
-
         ]
     "#;
+
+    #[test]
+    fn read_models_conf() -> Result<()> {
+        let models: Vec<ModelDescriptor> = ron::from_str(&MODEL_ASSET_EXAMPLE_CONFIG)?;
+        let model0 = models.get(0).ok_or_else(|| anyhow!("item not found"))?;
+        assert_eq!(model0.name(), ModelName::from("model0_name"));
+        Ok(())
+    }
 
     #[test]
     pub fn example_model() {

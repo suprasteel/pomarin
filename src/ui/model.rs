@@ -18,6 +18,12 @@ use super::{
     wgpu_state::WgpuResourceLoader,
 };
 
+/// A Wgpu-ready model
+///
+/// This struct points to the wgpu pipeline to use,
+/// the mesh buffers to be used,
+/// the materials (as bind groups) to apply to eac of the mesh's geometries
+///
 #[derive(Debug)]
 pub struct Model {
     name: String,
@@ -36,59 +42,36 @@ impl Model {
         }
     }
 
-    pub fn name(&self) -> String {
+    /*pub fn name(&self) -> String {
         self.name.clone()
-    }
+    }*/
 }
 
-/// Instanciate the resolution from the filesize    
-///    
-/// This call will fail if the file size is neither    
-/// SRTM1 (3601 * 3601 * 2) nor    
-/// SRTM3 (1201 * 1201 * 2).    
-///    
-/// # Argument    
-///    
-/// * `filesize` - the size of the file to interpret as a tile.    
-///    
-/// # Error    
-///    
-/// * `SrtmError::ResolutionError` in case of bad filesize.    
-///    
-/// # Example    
-///    
-/// ```    
-/// use easy_srtm::Resolution;    
-/// // get file size with `file.metadata()?.len()`    
-/// let resolution = Resolution::try_from(3601 * 3601 * 2);    
-/// assert_eq!(resolution.unwrap(), Resolution::SRTM1);    
-/// ```    
-///    
-
-/// # Describe a model.
+/// Describe a model.
 ///
-/// ## Example:
+/// To be used to describe to composition of the model:
+/// - what mesh to use by mesh name
+/// - what material apply to mesh's geometry
+/// - what pipeline will be used to handle the geometries and material bind groups
+///
+/// This struct is deserlisable from ron string.
+///
+/// # Example:
 ///
 /// ```
-///        (
-///            name:"texture_zod",
-///            mesh:("zodiac"),
-///            geometries_materials:[
-///            (("hull"),("wall")),
-///            (("inflatable"),("default"))
-///            ],
-///            pipeline_name:"textures_pipeline"
-///        ),
-/// {
-///     name: "pink_house",
-///     mesh: MeshName("house"),
-///     geometries_materials: vec![
-///         ("window", "glass"),
-///         ("door", "wood"),
-///         ("wall", "pink"),
+/// let EXAMPLE: &'static str = "(
+///     name:"model0_name",
+///     mesh:("model0_meshname"),
+///     geometries_materials:[
+///         (("model0_geometry0_name"),("model0_material0_name")),
+///         (("model0_geometry1_name"),("model0_material1_name"))
 ///     ],
-///     pipeline_name: "pipeline_1"
-/// }
+///     pipeline_name:"model0_pipeline"
+/// )";
+/// let model: ModelDescriptor = ron::from_str(&EXAMPLE)?;
+/// assert_eq!(mode.name(), ModelName::from("model0_name"));
+/// # Ok::<(), ron::Result>(())
+///
 /// ```
 ///
 #[derive(Deserialize, Serialize, Debug)]
@@ -116,6 +99,8 @@ impl ModelDescriptor {
     }
 }
 
+/// Represents the name of a model wrapper in a type to prevent matching names from differents
+/// types
 #[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]
 pub struct ModelName(String);
 

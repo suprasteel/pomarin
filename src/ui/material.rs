@@ -43,9 +43,8 @@ impl TryFrom<&str> for MaterialKind {
     }
 }
 
-/// In the end a material is just a bind group with atached data (as texture or uniform buffer)
-pub trait Material: ToString + Debug + Deref<Target = wgpu::BindGroup> {
-    // replace by name handle
+/// In the end a material is just a bind group
+pub trait Material: Debug + Deref<Target = wgpu::BindGroup> {
     fn name(&self) -> String;
     fn kind(&self) -> MaterialKind;
 }
@@ -62,8 +61,8 @@ pub struct ColorUniform {
 #[derive(Debug)]
 pub struct ColorMaterial {
     kind: MaterialKind,
-    pub name: String,
-    pub bind_group: wgpu::BindGroup,
+    name: String,
+    bind_group: wgpu::BindGroup,
 }
 
 impl Deref for ColorMaterial {
@@ -99,8 +98,10 @@ impl ColorMaterial {
             _pad: 0.0,
         };
 
+        let name = name.as_ref().to_string();
+
         let material_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("material color uniform buffer"),
+            label: Some(&format!("{} material color uniform buffer", name).to_string()),
             contents: bytemuck::cast_slice(&[uniform]),
             usage: wgpu::BufferUsages::UNIFORM,
         });
@@ -110,12 +111,12 @@ impl ColorMaterial {
                 binding: 0,
                 resource: material_buffer.as_entire_binding(),
             }],
-            label: Some("material buffer bind group"),
+            label: Some(&format!("{} material buffer bind group", name).to_string()),
         });
 
         ColorMaterial {
             kind: MaterialKind::Color,
-            name: name.as_ref().to_string(),
+            name,
             bind_group,
         }
     }
@@ -137,17 +138,11 @@ impl ColorMaterial {
     }
 }
 
-impl ToString for ColorMaterial {
-    fn to_string(&self) -> String {
-        self.name.to_string()
-    }
-}
-
 #[derive(Debug)]
 pub struct TextureMaterial {
     kind: MaterialKind,
     name: String,
-    pub bind_group: wgpu::BindGroup,
+    bind_group: wgpu::BindGroup,
 }
 
 impl Deref for TextureMaterial {
@@ -244,12 +239,6 @@ impl TextureMaterial {
             ],
             label: Some("texture material bind group layout"),
         })
-    }
-}
-
-impl ToString for TextureMaterial {
-    fn to_string(&self) -> String {
-        self.name.to_string()
     }
 }
 
