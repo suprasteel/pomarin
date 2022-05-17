@@ -1,6 +1,5 @@
 use super::{
-    material::Material, mesh::MeshBuf, model::Model, object::Object, pipeline::NamedPipeline,
-    texture::Texture,
+    material::Material, mesh::MeshBuf, model::Model, pipeline::NamedPipeline, texture::Texture,
 };
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
@@ -15,8 +14,6 @@ pub struct Store {
     pub pipelines: RefCell<HashMap<String, Rc<NamedPipeline>>>,
     /// an aggregation of material and geometries (via mesh)
     pub models: RefCell<HashMap<String, Rc<Model>>>,
-    /// objects instances describing whick entity to use
-    pub objects: RefCell<HashMap<String, Rc<Object>>>,
 }
 
 impl Store {
@@ -27,25 +24,7 @@ impl Store {
             meshes: RefCell::new(HashMap::new()),
             models: RefCell::new(HashMap::new()), // RefCell::new(BinaryHeap::new()),
             pipelines: RefCell::new(HashMap::new()),
-            objects: RefCell::new(HashMap::new()),
         }
-    }
-
-    pub fn add_object(&self, object: Rc<Object>) {
-        self.objects
-            .borrow_mut()
-            .insert(object.as_ref().name().clone(), object);
-    }
-
-    pub fn contains_object(&self, object: &str) -> bool {
-        self.objects.borrow().contains_key(object)
-    }
-
-    pub fn get_object<S: AsRef<str>>(&self, name: S) -> Option<Rc<Object>> {
-        self.objects
-            .borrow()
-            .get(&name.as_ref().to_string())
-            .map(|m| m.clone())
     }
 
     pub fn add_pipeline(&self, pipeline: Rc<NamedPipeline>) {
@@ -129,7 +108,7 @@ impl Store {
             .map(|m| m.clone())
     }
 
-    pub fn models(&self) -> Vec<Rc<Model>> {
+    pub fn _models(&self) -> Vec<Rc<Model>> {
         self.models
             .borrow()
             .iter()
