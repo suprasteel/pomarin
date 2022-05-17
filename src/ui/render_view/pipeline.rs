@@ -32,7 +32,7 @@ impl NamedPipeline {
     }
 
     // TODO; to be deleted after having a good way to check pipeline compat
-    pub fn can_use(&self, material_kind: MaterialKind) -> bool {
+    pub fn _can_use(&self, material_kind: MaterialKind) -> bool {
         self.supported_material_kind
             .iter()
             .find(|mk| *mk == &material_kind)
