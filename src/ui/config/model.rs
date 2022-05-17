@@ -1,51 +1,21 @@
-use std::{ops::Deref, rc::Rc};
+use anyhow::anyhow;
+use anyhow::Result;
+use serde::Deserialize;
+use std::rc::Rc;
 
-use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
-
-use crate::{
-    settings::assets::{AssetDescriptor, TryAsRef},
-    ui::material::MaterialDescriptor,
+use crate::ui::config::assets::TryAsRef;
+use crate::ui::names::NamedHandle;
+use crate::ui::{
+    config::{assets::AssetDescriptor, material::MaterialDescriptor, mesh::MeshDescriptor},
+    error::ModelError,
+    render_view::model::Model,
+    state::WgpuState,
 };
 
 use super::{
-    error::ModelError,
-    geometry::GeometryName,
-    material::{Material, MaterialName},
-    mesh::{MeshBuf, MeshDescriptor, MeshName},
-    pipeline::NamedPipeline,
-    resources::NamedHandle,
-    wgpu_state::WgpuResourceLoader,
+    handles::{GeometryName, MaterialName, MeshName},
+    WgpuResourceLoader,
 };
-
-/// A Wgpu-ready model
-///
-/// This struct points to the wgpu pipeline to use,
-/// the mesh buffers to be used,
-/// the materials (as bind groups) to apply to eac of the mesh's geometries
-///
-#[derive(Debug)]
-pub struct Model {
-    name: String,
-    pub pipeline: Rc<NamedPipeline>,
-    pub mesh: Rc<MeshBuf>,
-    pub materials: Vec<Rc<dyn Material>>,
-}
-
-impl Model {
-    pub fn new(name: String, pipeline: Rc<NamedPipeline>, mesh: Rc<MeshBuf>) -> Self {
-        Self {
-            name,
-            pipeline,
-            mesh,
-            materials: vec![],
-        }
-    }
-
-    /*pub fn name(&self) -> String {
-        self.name.clone()
-    }*/
-}
 
 /// Describe a model.
 ///
@@ -74,9 +44,9 @@ impl Model {
 ///
 /// ```
 ///
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct ModelDescriptor {
-    name: String,
+    pub(crate) name: String,
     mesh: MeshName,
     geometries_materials: Vec<(GeometryName, MaterialName)>,
     pipeline_name: String, // Pipeline descriptor...
@@ -99,11 +69,6 @@ impl ModelDescriptor {
     }
 }
 
-/// Represents the name of a model wrapper in a type to prevent matching names from differents
-/// types
-#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]
-pub struct ModelName(String);
-
 impl WgpuResourceLoader for ModelDescriptor {
     type Output = Rc<Model>;
 
@@ -114,7 +79,7 @@ impl WgpuResourceLoader for ModelDescriptor {
     /// - check that the materials associated to the geometries are valid with the pipeline
     /// - check that the geometries on which set materials are valid for this mesh
     /// - check that either all geometries have one material or all have none
-    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
+    fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output> {
         let store = &wgpu_state.store;
         let assets = &wgpu_state.assets;
         log::info!("load {}", self.name());
@@ -199,83 +164,5 @@ impl WgpuResourceLoader for ModelDescriptor {
         let model = Rc::new(model);
         store.add_model(model.clone());
         Ok(model)
-    }
-}
-
-impl From<&str> for ModelName {
-    fn from(value: &str) -> Self {
-        ModelName(value.to_string())
-    }
-}
-
-impl std::fmt::Display for ModelName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Model({})", self.0)
-    }
-}
-
-impl Deref for ModelName {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl NamedHandle<ModelName> for ModelDescriptor {
-    fn name(&self) -> ModelName {
-        ModelName(self.name.to_string())
-    }
-}
-impl NamedHandle<ModelName> for Model {
-    fn name(&self) -> ModelName {
-        ModelName(self.name.to_string())
-    }
-}
-
-impl Ord for Model {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.pipeline.as_ref().name() != other.pipeline.as_ref().name() {
-            self.pipeline
-                .as_ref()
-                .name()
-                .cmp(&other.pipeline.as_ref().name())
-        } else {
-            self.mesh.name.cmp(&other.mesh.name)
-        }
-    }
-}
-
-impl Eq for Model {
-    fn assert_receiver_is_total_eq(&self) {}
-}
-
-impl PartialOrd for Model {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self
-            .pipeline
-            .as_ref()
-            .name()
-            .partial_cmp(&other.pipeline.as_ref().name())
-        {
-            Some(core::cmp::Ordering::Equal) => Some(self.mesh.name.cmp(&other.mesh.name)),
-            ord => return ord,
-        }
-    }
-}
-
-impl PartialEq for Model {
-    fn eq(&self, other: &Self) -> bool {
-        self.pipeline.as_ref().name() == other.pipeline.as_ref().name()
-            && self.mesh.name == other.mesh.name
-            && self.materials.len() == other.materials.len()
-            && self
-                .materials
-                .iter()
-                .fold("".to_string(), |acc, mat| format!("{} {}", acc, mat.name()))
-                == other
-                    .materials
-                    .iter()
-                    .fold("".to_string(), |acc, mat| format!("{} {}", acc, mat.name()))
     }
 }

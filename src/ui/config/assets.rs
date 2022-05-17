@@ -2,14 +2,6 @@ use std::{collections::HashMap, fmt::Display};
 
 use anyhow::{anyhow, Result};
 
-use crate::ui::{
-    material::{MaterialDescriptor, MaterialName},
-    mesh::{MeshDescriptor, MeshName},
-    model::{ModelDescriptor, ModelName},
-    resources::NamedHandle,
-    texture::{TextureDescriptor, TextureName},
-};
-
 #[derive(Debug)]
 pub enum AssetDescriptor {
     Texture(TextureDescriptor),
@@ -26,6 +18,7 @@ pub enum AssetName {
     Model(ModelName),
 }
 
+/// Store assets descriptor to reuse on demand
 #[derive(Debug)]
 pub struct AssetsDescriptors(HashMap<AssetName, AssetDescriptor>);
 
@@ -73,6 +66,16 @@ impl AssetsDescriptors {
 }
 
 use thiserror::Error;
+
+use crate::ui::names::NamedHandle;
+
+use super::{
+    handles::{MaterialName, MeshName, ModelName, TextureName},
+    material::MaterialDescriptor,
+    mesh::MeshDescriptor,
+    model::ModelDescriptor,
+    texture::TextureDescriptor,
+};
 #[derive(Error, Debug)]
 pub enum AssetError {
     #[error("Could not get reference of {target_type} from {descriptor}")]

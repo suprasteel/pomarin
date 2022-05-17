@@ -1,15 +1,10 @@
 use anyhow::{Context, Result};
 use image::GenericImageView;
-use log::debug;
-use serde::{Deserialize, Serialize};
-use std::{
-    fmt::Display,
-    ops::Deref,
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use serde::Deserialize;
+use std::ops::Deref;
+use std::path::Path;
 
-use super::{error::TextureError, resources::NamedHandle, wgpu_state::WgpuResourceLoader};
+use crate::ui::error::TextureError;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -112,7 +107,7 @@ impl Texture {
         config: &wgpu::SurfaceConfiguration,
         label: &str,
     ) -> Self {
-        debug!("Creating depth texture");
+        log::debug!("Creating depth texture");
         let size = wgpu::Extent3d {
             width: config.width,
             height: config.height,
@@ -151,68 +146,7 @@ impl Texture {
     }
 }
 
-// TODO: check both are used
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct TextureDescriptor {
-    name: String,
-    path: PathBuf,
-    kind: TextureKind,
-}
-
-impl TextureDescriptor {
-    pub fn _new_(name: String, path: PathBuf, kind: TextureKind) -> Self {
-        Self { name, path, kind }
-    }
-}
-
-impl WgpuResourceLoader for TextureDescriptor {
-    type Output = Rc<Texture>;
-
-    fn load(&self, wgpu_state: &super::wgpu_state::WgpuState) -> Result<Self::Output> {
-        log::info!("Load {}", self.name);
-        let directory = PathBuf::from(wgpu_state.settings.textures_directory.to_string());
-
-        log::info!(
-            "Load texture file from : {:?} (textures directory is: {:?})",
-            self.path,
-            directory
-        );
-
-        if wgpu_state.store.contains_texture(&self.name) {
-            return Ok(wgpu_state
-                .store
-                .get_texture(&self.name)
-                .expect("Impossible err 2"));
-        }
-        let is_normal_map = self.kind == TextureKind::Normal;
-        let texture = Texture::load(
-            &wgpu_state.device,
-            &wgpu_state.queue,
-            directory.join(&self.path),
-            is_normal_map,
-        )?;
-        let texture = Rc::new(texture);
-        wgpu_state.store.add_texture(&self.name, texture.clone());
-        Ok(texture.clone())
-    }
-}
-
-impl Display for TextureDescriptor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let k = if self.kind == TextureKind::Diffuse {
-            "diffuse"
-        } else {
-            "normal"
-        };
-        write!(
-            f,
-            "TextureDescriptor:\"{}\" of type {} from {:?}",
-            self.name, k, self.path
-        )
-    }
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize)]
 pub enum TextureKind {
     Diffuse,
     Normal,
@@ -239,34 +173,5 @@ impl TryFrom<&str> for TextureKind {
                 input: input.to_string(),
             }),
         }
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]
-pub struct TextureName(String);
-
-impl From<&str> for TextureName {
-    fn from(value: &str) -> Self {
-        TextureName(value.to_string())
-    }
-}
-
-impl Deref for TextureName {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl NamedHandle<TextureName> for TextureDescriptor {
-    fn name(&self) -> TextureName {
-        TextureName(self.name.to_string())
-    }
-}
-
-impl std::fmt::Display for TextureName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Texture({})", self.0)
     }
 }

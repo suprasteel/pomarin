@@ -1,7 +1,8 @@
 use cgmath::Zero;
 
+use crate::ui::config::handles::ModelName;
+
 use super::instance::InstanceRaw;
-use super::model::ModelName;
 
 #[derive(PartialEq, Debug)]
 pub struct Object {

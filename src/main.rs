@@ -1,10 +1,10 @@
-mod settings;
+mod app;
 mod ui;
 
 use std::{sync::Arc, thread, time::Duration};
 
-use settings::config::AppConfig;
-use ui::{event::Emitter, wgpu_state::WgpuState};
+use app::{config::AppConfig, event::Emitter};
+use ui::state::WgpuState;
 use winit::{
     dpi::PhysicalSize,
     event::{Event, WindowEvent},
@@ -13,11 +13,10 @@ use winit::{
 };
 
 use crate::{
-    settings::config::load_conf,
+    app::{config::load_conf, event::PomarinEvent},
     ui::{
-        egui::{EguiRoutine, EguiWgpuPassBuilder},
-        event::PomarinEvent,
-        objects_pass::ObjectsPass,
+        render_ui::{pass::EguiWgpuPassBuilder, ui::EguiRoutine},
+        render_view::pass::ObjectsPass,
     },
 };
 
@@ -49,18 +48,6 @@ fn main() {
     });
 
     ui.run();
-}
-
-// reminder (may be removed)
-pub trait WgpuRpass {
-    fn handle_event(&mut self, event: &Event<PomarinEvent>);
-    fn render(
-        &mut self,
-        wgpu: &WgpuState,
-        window: &winit::window::Window,
-        output_view: &wgpu::TextureView,
-        encoder: wgpu::CommandEncoder,
-    ) -> wgpu::CommandEncoder;
 }
 
 pub struct AppUi {
@@ -183,7 +170,6 @@ impl AppUi {
                     let encoder = rend.render(&wgpu, &window, &output_view, encoder);
                     let encoder = egui.render(&wgpu, &window, &output_view, encoder);
                     wgpu.queue.submit(std::iter::once(encoder.finish()));
-                    // objects_pass.render()
 
                     // Redraw
                     output_frame.present();

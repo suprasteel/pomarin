@@ -1,24 +1,36 @@
+use super::state::WgpuState;
+use anyhow::Result;
+
 pub mod assets;
-pub mod config;
+pub mod geometry;
+pub mod handles;
+pub mod material;
+pub mod mesh;
+pub mod model;
+pub mod texture;
+pub mod vertex;
+
+pub trait WgpuResourceLoader {
+    type Output;
+
+    /// load resource if not already in store
+    fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output>;
+}
 
 pub mod utils {
-    use std::{fs, path::Path};
-
     use anyhow::{Context, Result};
+    use std::fs;
+    use std::path::Path;
 
-    use super::config::ResourcesConfig;
-    use crate::{
-        settings::assets::AssetsDescriptors,
-        ui::{
-            material::MaterialDescriptor, mesh::MeshDescriptor, model::ModelDescriptor,
-            texture::TextureDescriptor,
-        },
+    use crate::{app::config::ResourcesConfig, ui::config::assets::AssetsDescriptors};
+
+    use super::{
+        material::MaterialDescriptor, mesh::MeshDescriptor, model::ModelDescriptor,
+        texture::TextureDescriptor,
     };
 
     pub fn load_assets(config: &ResourcesConfig) -> Result<AssetsDescriptors> {
         let mut ad = AssetsDescriptors::new();
-
-        dbg!("{:?}", &config);
 
         let textures_desc = read_textures_descriptors(&config.textures_cfg)?;
         textures_desc.into_iter().for_each(|t| ad.push(t));
@@ -31,8 +43,6 @@ pub mod utils {
 
         let model_desc = read_models_descriptors(&config.models_cfg)?;
         model_desc.into_iter().for_each(|t| ad.push(t));
-
-        dbg!("{:?}", &ad);
 
         Ok(ad)
     }

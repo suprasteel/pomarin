@@ -6,25 +6,28 @@ use anyhow::anyhow;
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 
-use crate::settings::assets::{AssetDescriptor, TryAsRef};
+use crate::app::event::{Emitter, PomarinEvent};
+use crate::ui::config::assets::{AssetDescriptor, TryAsRef};
+use crate::ui::config::handles::ModelName;
+use crate::ui::config::model::ModelDescriptor;
+use crate::ui::config::WgpuResourceLoader;
+use crate::ui::state::WgpuState;
 
 use super::camera::{CameraSystem, OrbitController};
-use super::event::{Emitter, PomarinEvent};
+use super::draw_ext::DrawModel;
 use super::instance::{InstanceRaw, InstancesSystem};
 use super::light::{self, LightSystem, LightUniform};
 use super::material::MaterialKind;
-use super::model::{Model, ModelDescriptor, ModelName};
+use super::model::Model;
 use super::object::Object;
 use super::pipeline::{
     create_colored_model_pipeline, create_light_pipeline, create_textured_model_pipeline,
     NamedPipeline,
 };
-use super::rpass::DrawModel;
 use super::texture::{self, Texture};
-use super::wgpu_state::{WgpuResourceLoader, WgpuState};
 
 pub struct ObjectsPass {
-    emitter: Arc<Emitter<PomarinEvent>>,
+    _emitter: Arc<Emitter<PomarinEvent>>,
     depth_texture: Texture,
     objects: Vec<LinkedObject>,
     instances_system: InstancesSystem<InstanceRaw>,
@@ -46,7 +49,7 @@ impl LinkedObject {
 
 impl ObjectsPass {
     pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
-        let emitter = Arc::new(Emitter::new(event_loop));
+        let _emitter = Arc::new(Emitter::new(event_loop));
 
         let mut objects_desc = vec![];
         objects_desc.push(Object::new(
@@ -112,7 +115,7 @@ impl ObjectsPass {
         });
 
         Self {
-            emitter,
+            _emitter,
             instances_system,
             depth_texture,
             objects,

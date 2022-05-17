@@ -1,9 +1,8 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
-
 use super::{
     material::Material, mesh::MeshBuf, model::Model, object::Object, pipeline::NamedPipeline,
-    resources::NamedHandle, texture::Texture,
+    texture::Texture,
 };
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub struct Store {
     /// wgpu textures (with sampler and view)
@@ -55,6 +54,13 @@ impl Store {
             .insert(pipeline.as_ref().name().clone(), pipeline);
     }
 
+    pub fn get_pipeline<S: AsRef<str>>(&self, name: S) -> Option<Rc<NamedPipeline>> {
+        self.pipelines
+            .borrow()
+            .get(&name.as_ref().to_string())
+            .map(|m| m.clone())
+    }
+
     pub fn add_mesh(&self, mesh: Rc<MeshBuf>) {
         self.meshes
             .borrow_mut()
@@ -65,10 +71,17 @@ impl Store {
         self.meshes.borrow().contains_key(mesh)
     }
 
+    pub fn get_mesh<S: AsRef<str>>(&self, name: S) -> Option<Rc<MeshBuf>> {
+        self.meshes
+            .borrow()
+            .get(&name.as_ref().to_string())
+            .map(|m| m.clone())
+    }
+
     pub fn add_model(&self, entity: Rc<Model>) {
         self.models
             .borrow_mut()
-            .insert(entity.as_ref().name().to_string(), entity);
+            .insert(entity.as_ref().name.clone(), entity);
     }
 
     pub fn contains_model(&self, model: &str) -> bool {
@@ -85,6 +98,13 @@ impl Store {
         self.materials.borrow().contains_key(material)
     }
 
+    pub fn get_material<S: AsRef<str>>(&self, name: S) -> Option<Rc<dyn Material>> {
+        self.materials
+            .borrow()
+            .get(&name.as_ref().to_string())
+            .map(|m| m.clone())
+    }
+
     pub fn add_texture<S: AsRef<str>>(&self, name: S, texture: Rc<Texture>) {
         self.textures
             .borrow_mut()
@@ -97,28 +117,6 @@ impl Store {
 
     pub fn get_texture<S: AsRef<str>>(&self, name: S) -> Option<Rc<Texture>> {
         self.textures
-            .borrow()
-            .get(&name.as_ref().to_string())
-            .map(|m| m.clone())
-    }
-
-    // TODO: use MeshName
-    pub fn get_mesh<S: AsRef<str>>(&self, name: S) -> Option<Rc<MeshBuf>> {
-        self.meshes
-            .borrow()
-            .get(&name.as_ref().to_string())
-            .map(|m| m.clone())
-    }
-
-    pub fn get_material<S: AsRef<str>>(&self, name: S) -> Option<Rc<dyn Material>> {
-        self.materials
-            .borrow()
-            .get(&name.as_ref().to_string())
-            .map(|m| m.clone())
-    }
-
-    pub fn get_pipeline<S: AsRef<str>>(&self, name: S) -> Option<Rc<NamedPipeline>> {
-        self.pipelines
             .borrow()
             .get(&name.as_ref().to_string())
             .map(|m| m.clone())

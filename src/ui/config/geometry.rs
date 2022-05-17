@@ -1,25 +1,6 @@
-use std::ops::Deref;
-
-use serde::{Deserialize, Serialize};
+use crate::ui::render_view::geometry::GeometryBuf;
+use serde::Deserialize;
 use wgpu::util::DeviceExt;
-
-use super::resources::NamedHandle;
-
-/// # Grouped buffers for indexed vertices of a geometry (simple mesh raw buffers)
-///
-/// - *name*: a convenient value to identify this geometry's buffers. Only accessible from name()
-/// function as a typed GeometryName.
-/// - *vertex_buffer*: wgpu::Buffer of vertices
-/// - *index_buffer*: wgpu::Buffer of indexes to make faces
-/// - *num_elements*: vertices count
-///.
-#[derive(Debug)]
-pub struct GeometryBuf {
-    name: String,
-    pub vertex_buffer: wgpu::Buffer,
-    pub index_buffer: wgpu::Buffer,
-    pub num_elements: u32,
-}
 
 /// # Describe a geometry by its name.
 ///
@@ -35,9 +16,9 @@ pub struct GeometryBuf {
 /// handle more parameters (options) or sanity checks
 /// like the vertex count or the kind of vertex it
 /// is made of (with or without uv, normals...)
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct GeometryDescriptor {
-    name: String,
+    pub(crate) name: String,
 }
 
 impl From<&str> for GeometryDescriptor {
@@ -58,9 +39,9 @@ pub struct GeometryVertices<T>
 where
     T: bytemuck::Pod,
 {
-    name: String,
-    pub vertices: Vec<T>,
-    pub indices: Vec<u32>,
+    pub(crate) name: String,
+    pub(crate) vertices: Vec<T>,
+    pub(crate) indices: Vec<u32>,
 }
 
 impl<T> GeometryVertices<T>
@@ -92,48 +73,5 @@ where
             index_buffer,
             num_elements: self.indices.len() as u32,
         }
-    }
-}
-
-/// Typed string to use as geometry name
-#[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
-pub struct GeometryName(String);
-
-impl From<&str> for GeometryName {
-    fn from(s: &str) -> Self {
-        GeometryName(s.to_string())
-    }
-}
-
-impl Deref for GeometryName {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::fmt::Display for GeometryName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Geometry({})", self.0)
-    }
-}
-
-impl NamedHandle<GeometryName> for GeometryBuf {
-    fn name(&self) -> GeometryName {
-        GeometryName(self.name.clone())
-    }
-}
-impl NamedHandle<GeometryName> for GeometryDescriptor {
-    fn name(&self) -> GeometryName {
-        GeometryName(self.name.clone())
-    }
-}
-impl<T> NamedHandle<GeometryName> for GeometryVertices<T>
-where
-    T: bytemuck::Pod,
-{
-    fn name(&self) -> GeometryName {
-        GeometryName(self.name.clone())
     }
 }
