@@ -3,12 +3,12 @@ use anyhow::Result;
 use serde::Deserialize;
 use std::rc::Rc;
 
-use crate::ui::config::assets::TryAsRef;
-use crate::ui::names::NamedHandle;
-use crate::ui::{
+use crate::render::config::assets::TryAsRef;
+use crate::render::names::NamedHandle;
+use crate::render::{
     config::{assets::AssetDescriptor, material::MaterialDescriptor, mesh::MeshDescriptor},
     error::ModelError,
-    render_view::model::Model,
+    scene::model::Model,
     state::WgpuState,
 };
 

@@ -1,7 +1,7 @@
-use crate::ui::{
+use crate::render::{
     config::{assets::TryAsRef, texture::TextureDescriptor},
     names::NamedHandle,
-    render_view::{
+    scene::{
         color_material::ColorMaterial, material::Material, texture::Texture,
         texture_material::TextureMaterial,
     },

@@ -7,9 +7,9 @@ use super::{
     model::ModelDescriptor,
     texture::TextureDescriptor,
 };
-use crate::ui::{
+use crate::render::{
     names::NamedHandle,
-    render_view::{geometry::GeometryBuf, model::Model},
+    scene::{geometry::GeometryBuf, model::Model},
 };
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, ops::Deref};

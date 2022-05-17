@@ -7,7 +7,7 @@ use winit::{event_loop::EventLoop, window::Window};
 
 use crate::{
     app::event::{Emitter, EventEmitter, PomarinEvent},
-    ui::state::WgpuState,
+    render::state::WgpuState,
 };
 
 // retain egui state

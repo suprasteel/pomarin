@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::ops::Deref;
 use std::path::Path;
 
-use crate::ui::error::TextureError;
+use crate::render::error::TextureError;
 
 pub struct Texture {
     pub texture: wgpu::Texture,

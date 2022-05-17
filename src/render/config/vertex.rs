@@ -1,5 +1,5 @@
 use super::{geometry::GeometryVertices, WgpuResourceLoader};
-use crate::ui::{render_view::vertex::ModelVertex, state::WgpuState};
+use crate::render::{scene::vertex::ModelVertex, state::WgpuState};
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::path::PathBuf;

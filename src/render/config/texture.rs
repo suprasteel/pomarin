@@ -1,5 +1,5 @@
-use crate::ui::{
-    render_view::texture::{Texture, TextureKind},
+use crate::render::{
+    scene::texture::{Texture, TextureKind},
     state::WgpuState,
 };
 use anyhow::Result;

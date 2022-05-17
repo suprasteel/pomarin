@@ -2,7 +2,7 @@ use std::{fmt::Debug, ops::Deref};
 
 use anyhow::Result;
 
-use crate::ui::error::MaterialError;
+use crate::render::error::MaterialError;
 
 #[derive(Clone, Copy, Hash, PartialEq, std::cmp::Eq, Debug)]
 pub enum MaterialKind {

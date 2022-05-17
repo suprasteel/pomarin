@@ -1,19 +1,38 @@
+//! A module to manage assets reading, parsing and wgpu resources initialisation.
+
 use super::state::WgpuState;
 use anyhow::Result;
 
+/// Module to handle all kind of asset as one type
 pub mod assets;
+/// Module defining geometry configuration data
 pub mod geometry;
+/// Module defining asset kind names as strongly typed
 pub mod handles;
+/// Module defining material configuration data
 pub mod material;
+/// Module defining mesh configuration data
 pub mod mesh;
+/// Module defining model configuration data
 pub mod model;
+/// Module defining texture configuration data
 pub mod texture;
+/// Module defining vertex configuration data
 pub mod vertex;
 
+/// Structs implementing this trait have to provide a wgpu resource from themselves.
+///
+/// This trait is to be implemented by assets descriptor to build wgpu resources (buffers, uniforms, bindings).
+///
+/// This trait makes the implementor aware of the wgpu state.
+///
+/// The wgpu state has a buffer store to retain buffers or other wgpu resources (check the Store)
 pub trait WgpuResourceLoader {
     type Output;
 
-    /// load resource if not already in store
+    /// Load a wgpu resource from the implementor.
+    /// This method should save in the store the built resources if not present yet.
+    /// Do nothing if the resource is already available in the store.
     fn load(&self, wgpu_state: &WgpuState) -> Result<Self::Output>;
 }
 
@@ -22,13 +41,16 @@ pub mod utils {
     use std::fs;
     use std::path::Path;
 
-    use crate::{app::config::ResourcesConfig, ui::config::assets::AssetsDescriptors};
+    use crate::{app::config::ResourcesConfig, render::config::assets::AssetsDescriptors};
 
     use super::{
         material::MaterialDescriptor, mesh::MeshDescriptor, model::ModelDescriptor,
         texture::TextureDescriptor,
     };
 
+    /// Given a ResourcesConfig, loads all available assets.
+    ///
+    /// The ResourcesConfig has files paths to the configuration file containings our assets descriptors.
     pub fn load_assets(config: &ResourcesConfig) -> Result<AssetsDescriptors> {
         let mut ad = AssetsDescriptors::new();
 

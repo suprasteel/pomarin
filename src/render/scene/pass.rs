@@ -7,11 +7,11 @@ use winit::event_loop::EventLoop;
 use winit::window::Window;
 
 use crate::app::event::{Emitter, PomarinEvent};
-use crate::ui::config::assets::{AssetDescriptor, TryAsRef};
-use crate::ui::config::handles::ModelName;
-use crate::ui::config::model::ModelDescriptor;
-use crate::ui::config::WgpuResourceLoader;
-use crate::ui::state::WgpuState;
+use crate::render::config::assets::{AssetDescriptor, TryAsRef};
+use crate::render::config::handles::ModelName;
+use crate::render::config::model::ModelDescriptor;
+use crate::render::config::WgpuResourceLoader;
+use crate::render::state::WgpuState;
 
 use super::camera::{CameraSystem, OrbitController};
 use super::draw_ext::DrawModel;

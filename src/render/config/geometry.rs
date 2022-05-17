@@ -1,4 +1,4 @@
-use crate::ui::render_view::geometry::GeometryBuf;
+use crate::render::scene::geometry::GeometryBuf;
 use serde::Deserialize;
 use wgpu::util::DeviceExt;
 

@@ -4,7 +4,7 @@ use crate::app::config::ResourcesConfig;
 
 use super::{
     config::{assets::AssetsDescriptors, utils::load_assets},
-    render_view::store::Store,
+    scene::store::Store,
 };
 
 pub struct WgpuState {

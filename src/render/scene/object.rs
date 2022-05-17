@@ -1,6 +1,6 @@
 use cgmath::Zero;
 
-use crate::ui::config::handles::ModelName;
+use crate::render::config::handles::ModelName;
 
 use super::instance::InstanceRaw;
 
