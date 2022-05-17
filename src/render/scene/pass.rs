@@ -26,16 +26,8 @@ use super::pipeline::{
 };
 use super::texture::{self, Texture};
 
-pub struct ObjectsPass {
-    _emitter: Arc<Emitter<PomarinEvent>>,
-    depth_texture: Texture,
-    objects: Vec<LinkedObject>,
-    instances_system: InstancesSystem<InstanceRaw>,
-    camera_system: CameraSystem<OrbitController>,
-    light_system: LightSystem<LightUniform>, //TODO: rm useless trait/generic
-    last_render_time: Instant,
-}
-
+/// A struct mapping the object and the model
+/// The model is displayed based on the object data
 pub struct LinkedObject {
     object: Object,
     model: Rc<Model>,
@@ -47,7 +39,18 @@ impl LinkedObject {
     }
 }
 
-impl ObjectsPass {
+/// Scene initialisation and redrawing
+pub struct ScenePass {
+    _emitter: Arc<Emitter<PomarinEvent>>,
+    depth_texture: Texture,
+    objects: Vec<LinkedObject>,
+    instances_system: InstancesSystem<InstanceRaw>,
+    camera_system: CameraSystem<OrbitController>,
+    light_system: LightSystem<LightUniform>, //TODO: rm useless trait/generic
+    last_render_time: Instant,
+}
+
+impl ScenePass {
     pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         let _emitter = Arc::new(Emitter::new(event_loop));
 
@@ -148,7 +151,7 @@ impl ObjectsPass {
     }
 
     pub(crate) fn handle_event(&mut self, ref event: PomarinEvent) {
-        // receive objects here
+        // TODO: receive objects here
         match event {
             PomarinEvent::SomeEvent => {
                 log::info!(target: "event", "some user event");
