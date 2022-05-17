@@ -1,13 +1,10 @@
-use crate::render::names::NamedHandle;
+use crate::render::names::{MaterialName, MeshName, ModelName, NamedHandle, TextureName};
 use anyhow::{anyhow, Result};
 use std::{collections::HashMap, fmt::Display};
 use thiserror::Error;
 
 use super::{
-    handles::{MaterialName, MeshName, ModelName, TextureName},
-    material::MaterialDescriptor,
-    mesh::MeshDescriptor,
-    model::ModelDescriptor,
+    material::MaterialDescriptor, mesh::MeshDescriptor, model::ModelDescriptor,
     texture::TextureDescriptor,
 };
 

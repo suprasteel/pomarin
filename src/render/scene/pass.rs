@@ -8,9 +8,9 @@ use winit::window::Window;
 
 use crate::app::event::{Emitter, PomarinEvent};
 use crate::render::config::assets::{AssetDescriptor, TryAsRef};
-use crate::render::config::handles::ModelName;
 use crate::render::config::model::ModelDescriptor;
 use crate::render::config::WgpuResourceLoader;
+use crate::render::names::ModelName;
 use crate::render::state::WgpuState;
 
 use super::camera::{CameraSystem, OrbitController};
