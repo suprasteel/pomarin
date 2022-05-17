@@ -15,7 +15,7 @@ use winit::{
 use crate::{
     app::{config::load_conf, event::PomarinEvent},
     ui::{
-        render_ui::{pass::EguiWgpuPassBuilder, ui::EguiRoutine},
+        render_ui::{pass::EguiWgpuPass, ui::EguiRoutine},
         render_view::pass::ObjectsPass,
     },
 };
@@ -27,7 +27,7 @@ const ENV_FILE: &str = "dev.env";
 
 fn main() {
     println!(
-        " --- Starting {} Application (loading environment from {}) --- ",
+        " --- Starting {} (loading env from {}) --- ",
         APP_NAME, ENV_FILE
     );
 
@@ -36,29 +36,29 @@ fn main() {
     env_logger::init();
     log::info!("Initialized environment and logger");
 
-    let ui = AppUi::new(load_conf());
-    let emitter = ui.get_emitter();
+    let ui = AppRender::new(load_conf());
+    let emitter = ui.get_emitter_handle();
 
     thread::spawn(move || loop {
         emitter
             .emit(PomarinEvent::SomeEvent)
             .err()
-            .map(|e| log::error!("oops: {:?}", e));
+            .map(|e| log::error!("some event err: {:?}", e));
         thread::sleep(Duration::new(1, 0));
     });
 
     ui.run();
 }
 
-pub struct AppUi {
+pub struct AppRender {
     app_config: AppConfig,
     event_loop: EventLoop<PomarinEvent>,
+    initial_size: PhysicalSize<u32>,
     _max_fps: u64,
     _fps_time: Duration,
-    initial_size: PhysicalSize<u32>,
 }
 
-impl AppUi {
+impl AppRender {
     pub fn new(app_config: AppConfig) -> Self {
         let max_fps = 120;
         let _fps_time = Duration::from_millis(1_000 / max_fps);
@@ -66,13 +66,13 @@ impl AppUi {
         Self {
             app_config,
             event_loop,
+            initial_size: PhysicalSize::new(200, 200),
             _max_fps: max_fps,
             _fps_time,
-            initial_size: PhysicalSize::new(200, 200),
         }
     }
 
-    pub fn get_emitter(&self) -> Arc<Emitter<PomarinEvent>> {
+    pub fn get_emitter_handle(&self) -> Arc<Emitter<PomarinEvent>> {
         Arc::new(Emitter::new(&self.event_loop))
     }
 
@@ -86,11 +86,7 @@ impl AppUi {
         window.set_min_inner_size(Some(self.initial_size));
 
         let mut wgpu = WgpuState::init(&window, &self.app_config.resources);
-        let mut egui = EguiWgpuPassBuilder::new(EguiRoutine::default()).build(
-            &wgpu,
-            &window,
-            &self.event_loop,
-        );
+        let mut egui = EguiWgpuPass::new(&wgpu, &window, &self.event_loop, EguiRoutine::default());
         let mut rend = ObjectsPass::new(&wgpu, &window, &self.event_loop);
 
         log::info!("Starting event loop");
@@ -104,7 +100,6 @@ impl AppUi {
                     window_id,
                 } => {
                     if window_id == window.id() {
-                        // wgpu_context.handle_window_event(event);
                         match event {
                             WindowEvent::CloseRequested => {
                                 log::info!(target: "event", "Window CloseRequest");
@@ -113,7 +108,6 @@ impl AppUi {
                             WindowEvent::Resized(size) => {
                                 let size = *size;
                                 wgpu.pre_resize(size);
-                                // other
                                 rend.resize(&wgpu);
                                 wgpu.post_resize(size);
 
@@ -166,7 +160,7 @@ impl AppUi {
                                 label: Some("encoder"),
                             });
 
-                    // the last one wins :p
+                    // the last one wins, we want the ui above the 3d scene
                     let encoder = rend.render(&wgpu, &window, &output_view, encoder);
                     let encoder = egui.render(&wgpu, &window, &output_view, encoder);
                     wgpu.queue.submit(std::iter::once(encoder.finish()));

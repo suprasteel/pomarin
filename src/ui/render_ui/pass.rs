@@ -10,54 +10,6 @@ use crate::{
     ui::state::WgpuState,
 };
 
-pub struct EguiWgpuPassBuilder<T> {
-    gui: T,
-}
-
-impl<T> EguiWgpuPassBuilder<T>
-where
-    T: EventEmitter<PomarinEvent> + epi::App,
-{
-    pub fn new(gui: T) -> Self {
-        Self { gui }
-    }
-}
-
-impl<T> EguiWgpuPassBuilder<T>
-where
-    T: EventEmitter<PomarinEvent> + epi::App,
-{
-    pub fn build(
-        mut self,
-        wgpu: &WgpuState,
-        window: &Window,
-        event_loop: &EventLoop<PomarinEvent>,
-    ) -> EguiWgpuPass<T> {
-        let repainter = Arc::new(Emitter::new(event_loop));
-
-        let inner_size = window.inner_size();
-        let platform = Platform::new(PlatformDescriptor {
-            physical_width: inner_size.width,
-            physical_height: inner_size.height,
-            scale_factor: window.scale_factor(),
-            font_definitions: FontDefinitions::default(),
-            style: Default::default(),
-        });
-
-        let rpass = RenderPass::new(&wgpu.device, wgpu.surface_format, 1);
-
-        self.gui.set_emitter_from(event_loop);
-
-        EguiWgpuPass {
-            platform,
-            rpass,
-            previous_frame_time: None,
-            repainter,
-            gui: self.gui,
-        }
-    }
-}
-
 // retain egui state
 pub struct EguiWgpuPass<T>
 where
@@ -74,6 +26,35 @@ impl<T> EguiWgpuPass<T>
 where
     T: EventEmitter<PomarinEvent> + epi::App,
 {
+    pub fn new(
+        wgpu: &WgpuState,
+        window: &Window,
+        event_loop: &EventLoop<PomarinEvent>,
+        mut gui: T,
+    ) -> EguiWgpuPass<T> {
+        let repainter = Arc::new(Emitter::new(event_loop));
+
+        let inner_size = window.inner_size();
+        let platform = Platform::new(PlatformDescriptor {
+            physical_width: inner_size.width,
+            physical_height: inner_size.height,
+            scale_factor: window.scale_factor(),
+            font_definitions: FontDefinitions::default(),
+            style: Default::default(),
+        });
+
+        let rpass = RenderPass::new(&wgpu.device, wgpu.surface_format, 1);
+
+        gui.set_emitter_from(event_loop);
+
+        EguiWgpuPass {
+            platform,
+            rpass,
+            previous_frame_time: None,
+            repainter,
+            gui,
+        }
+    }
     pub fn handle_event(&mut self, event: &winit::event::Event<PomarinEvent>) {
         self.platform.handle_event(event);
     }

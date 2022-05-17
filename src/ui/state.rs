@@ -8,7 +8,6 @@ use super::{
 };
 
 pub struct WgpuState {
-    // app conf
     pub instance: wgpu::Instance,
     pub surface: wgpu::Surface,
     pub config: wgpu::SurfaceConfiguration,
@@ -21,11 +20,8 @@ pub struct WgpuState {
     pub store: Store,
 }
 
-// retain wgpu state
 impl WgpuState {
     pub(crate) fn init(window: &winit::window::Window, settings: &ResourcesConfig) -> Self {
-        // should read config files and load models during init
-        // let mut wgpu_context = pollster::block_on(Wgpu::new(&window));
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(&window) };
         let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
