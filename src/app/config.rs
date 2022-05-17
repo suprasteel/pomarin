@@ -5,7 +5,7 @@ use winit::dpi::{PhysicalSize, Size};
 
 static CONF_PATH: &'static str = env!("APP_CONF_FILE_PATH");
 
-/// Initial window configuration
+/// Window configuration
 #[derive(Copy, Clone, Deserialize, Debug)]
 pub struct WindowConfig {
     pub height: u32,
@@ -32,6 +32,13 @@ impl From<WindowConfig> for Size {
     }
 }
 
+/// Resources (assets) sources configuration
+///
+/// Assets are placed in directories.
+/// Those directories are set by default to:
+/// - meshes for obj files
+/// - textures for textures images
+/// - configuration files listing the resources and their information
 #[derive(Deserialize, Debug, Clone)]
 pub struct ResourcesConfig {
     /// textures as images
