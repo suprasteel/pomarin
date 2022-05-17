@@ -8,9 +8,9 @@ use winit::{
 };
 
 use crate::{
-    ui::{
-        render_ui::{pass::EguiWgpuPass, ui::EguiRoutine},
-        render_view::pass::ObjectsPass,
+    render::{
+        egui::{pass::EguiWgpuPass, ui::EguiRoutine},
+        scene::pass::ObjectsPass,
         state::WgpuState,
     },
     APP_NAME,
@@ -21,6 +21,15 @@ use super::{
     event::{Emitter, PomarinEvent},
 };
 
+/// App render manager.
+///
+/// This struct takes a config from which it defines the window and its content.
+///
+/// This struct's `run()` method starts a winit event loop with a scene and an egui UI.
+///
+/// To notify the rendering with app event, get an emitter with `get_emitter_handle()` and call
+/// `emit(app_event)` on it.
+///
 pub struct AppRender {
     app_config: AppConfig,
     event_loop: EventLoop<PomarinEvent>,
@@ -43,11 +52,13 @@ impl AppRender {
         }
     }
 
+    /// Get the event emitter (Arc wrapped) that will enable sending app event to the event loop
     pub fn get_emitter_handle(&self) -> Arc<Emitter<PomarinEvent>> {
         Arc::new(Emitter::new(&self.event_loop))
     }
 
-    // cannot use ui after run
+    /// Run the winit event loop.
+    /// Once this loop is started, it will be closed either by a `PomarinEvent::CloseApp` or a `Event::CloseRequested` event.
     pub fn run(self) {
         let window = WindowBuilder::new().build(&self.event_loop).unwrap();
         window.set_title(APP_NAME);
@@ -56,8 +67,11 @@ impl AppRender {
         window.set_visible(true);
         window.set_min_inner_size(Some(self.initial_size));
 
+        // wgpu state
         let mut wgpu = WgpuState::init(&window, &self.app_config.resources);
+        // render egui ui
         let mut egui = EguiWgpuPass::new(&wgpu, &window, &self.event_loop, EguiRoutine::default());
+        // render 3d scene
         let mut rend = ObjectsPass::new(&wgpu, &window, &self.event_loop);
 
         log::info!("Starting event loop");

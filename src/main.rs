@@ -1,5 +1,6 @@
 mod app;
-mod ui;
+/// Module managing rendering (scene and ui)
+mod render;
 
 use crate::app::{config::load_conf, event::PomarinEvent, render::AppRender};
 use std::{thread, time::Duration};

@@ -3,6 +3,12 @@ use std::sync::Mutex;
 use anyhow::Result;
 use winit::event_loop::EventLoop;
 
+/// Application events.
+///
+/// Used to notify:
+/// - user requests via egui interractions
+/// - updates requested from scene
+/// - external event to be handled by the render
 #[derive(Debug, Clone, Copy)]
 pub enum PomarinEvent {
     SomeEvent,
