@@ -3,11 +3,13 @@ use std::rc::Rc;
 
 use serde::Deserialize;
 
-use crate::render::{names::NamedHandle, scene::mesh::MeshBuf, state::WgpuState};
-
-use super::{
-    geometry::GeometryDescriptor, handles::GeometryName, vertex::VerticesSource, WgpuResourceLoader,
+use crate::render::{
+    names::{GeometryName, NamedHandle},
+    scene::mesh::MeshBuf,
+    state::WgpuState,
 };
+
+use super::{geometry::GeometryDescriptor, vertex::VerticesSource, WgpuResourceLoader};
 
 /// # Describe a mesh.
 ///

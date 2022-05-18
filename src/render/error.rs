@@ -1,6 +1,6 @@
 use thiserror::Error as ThisError;
 
-use super::config::handles::{GeometryName, MeshName, ModelName};
+use super::names::{GeometryName, MeshName, ModelName};
 
 #[derive(ThisError, Debug)]
 pub enum MaterialError {

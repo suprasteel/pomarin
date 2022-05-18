@@ -1,21 +1,18 @@
-use anyhow::anyhow;
-use anyhow::Result;
-use serde::Deserialize;
-use std::rc::Rc;
-
-use crate::render::config::assets::TryAsRef;
-use crate::render::names::NamedHandle;
 use crate::render::{
-    config::{assets::AssetDescriptor, material::MaterialDescriptor, mesh::MeshDescriptor},
+    config::{
+        assets::AssetDescriptor, assets::TryAsRef, material::MaterialDescriptor,
+        mesh::MeshDescriptor,
+    },
     error::ModelError,
+    names::{GeometryName, MaterialName, MeshName, NamedHandle},
     scene::model::Model,
     state::WgpuState,
 };
+use anyhow::{anyhow, Result};
+use serde::Deserialize;
+use std::rc::Rc;
 
-use super::{
-    handles::{GeometryName, MaterialName, MeshName},
-    WgpuResourceLoader,
-};
+use super::WgpuResourceLoader;
 
 /// Describe a model.
 ///
@@ -41,7 +38,6 @@ use super::{
 /// let model: ModelDescriptor = ron::from_str(&EXAMPLE)?;
 /// assert_eq!(mode.name(), ModelName::from("model0_name"));
 /// # Ok::<(), ron::Result>(())
-///
 /// ```
 ///
 #[derive(Deserialize, Debug)]

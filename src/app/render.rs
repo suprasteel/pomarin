@@ -10,7 +10,7 @@ use winit::{
 use crate::{
     render::{
         egui::{pass::EguiWgpuPass, ui::EguiRoutine},
-        scene::pass::ObjectsPass,
+        scene::pass::ScenePass,
         state::WgpuState,
     },
     APP_NAME,
@@ -72,7 +72,7 @@ impl AppRender {
         // render egui ui
         let mut egui = EguiWgpuPass::new(&wgpu, &window, &self.event_loop, EguiRoutine::default());
         // render 3d scene
-        let mut rend = ObjectsPass::new(&wgpu, &window, &self.event_loop);
+        let mut rend = ScenePass::new(&wgpu, &window, &self.event_loop);
 
         log::info!("Starting event loop");
 

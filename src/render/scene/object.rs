@@ -1,8 +1,6 @@
-use cgmath::Zero;
-
-use crate::render::config::handles::ModelName;
-
 use super::instance::InstanceRaw;
+use crate::render::names::ModelName;
+use cgmath::Zero;
 
 #[derive(PartialEq, Debug)]
 pub struct Object {
@@ -24,6 +22,10 @@ impl Object {
             mesh_scale: 1.0,
             opacity: 1.0,
         }
+    }
+
+    pub fn set_position(&mut self, position: (f32, f32, f32)) {
+        self.position = cgmath::Vector3::new(position.0, position.1, position.2);
     }
 
     pub fn name(&self) -> String {

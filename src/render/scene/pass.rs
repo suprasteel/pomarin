@@ -8,9 +8,9 @@ use winit::window::Window;
 
 use crate::app::event::{Emitter, PomarinEvent};
 use crate::render::config::assets::{AssetDescriptor, TryAsRef};
-use crate::render::config::handles::ModelName;
 use crate::render::config::model::ModelDescriptor;
 use crate::render::config::WgpuResourceLoader;
+use crate::render::names::ModelName;
 use crate::render::state::WgpuState;
 
 use super::camera::{CameraSystem, OrbitController};
@@ -26,16 +26,8 @@ use super::pipeline::{
 };
 use super::texture::{self, Texture};
 
-pub struct ObjectsPass {
-    _emitter: Arc<Emitter<PomarinEvent>>,
-    depth_texture: Texture,
-    objects: Vec<LinkedObject>,
-    instances_system: InstancesSystem<InstanceRaw>,
-    camera_system: CameraSystem<OrbitController>,
-    light_system: LightSystem<LightUniform>, //TODO: rm useless trait/generic
-    last_render_time: Instant,
-}
-
+/// A struct mapping the object and the model
+/// The model is displayed based on the object data
 pub struct LinkedObject {
     object: Object,
     model: Rc<Model>,
@@ -47,15 +39,30 @@ impl LinkedObject {
     }
 }
 
-impl ObjectsPass {
+/// Scene initialisation and redrawing
+pub struct ScenePass {
+    _emitter: Arc<Emitter<PomarinEvent>>,
+    depth_texture: Texture,
+    objects: Vec<LinkedObject>,
+    instances_system: InstancesSystem<InstanceRaw>,
+    camera_system: CameraSystem<OrbitController>,
+    light_system: LightSystem<LightUniform>, //TODO: rm useless trait/generic
+    last_render_time: Instant,
+}
+
+impl ScenePass {
     pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         let _emitter = Arc::new(Emitter::new(event_loop));
+
+        let mut z2 = Object::new("z2".to_string(), ModelName::from("texture_zod"));
+        z2.set_position((10.0, 0.0, 10.0));
 
         let mut objects_desc = vec![];
         objects_desc.push(Object::new(
             "zodiac".to_string(),
             ModelName::from("color_zod"),
         ));
+        objects_desc.push(z2);
         objects_desc.push(Object::new(
             "sea".to_string(),
             ModelName::from("sea_square"),
@@ -94,6 +101,7 @@ impl ObjectsPass {
         wgpu.store.add_pipeline(Rc::new(textured_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(colored_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(light_pipeline));
+        // TODO: terrain pipeline to colr according to height
 
         let mut objects = vec![];
 
@@ -148,7 +156,7 @@ impl ObjectsPass {
     }
 
     pub(crate) fn handle_event(&mut self, ref event: PomarinEvent) {
-        // receive objects here
+        // TODO: receive objects here
         match event {
             PomarinEvent::SomeEvent => {
                 log::info!(target: "event", "some user event");

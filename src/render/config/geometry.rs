@@ -2,9 +2,9 @@ use crate::render::scene::geometry::GeometryBuf;
 use serde::Deserialize;
 use wgpu::util::DeviceExt;
 
-/// # Describe a geometry by its name.
+/// Describe a geometry by its name.
 ///
-/// ## Example:
+/// # Example:
 ///
 /// ```
 /// GeometryDescriptor {
@@ -29,7 +29,7 @@ impl From<&str> for GeometryDescriptor {
     }
 }
 
-/// # Geometry vertices and indices
+/// Geometry vertices and indices
 ///
 /// Container of the raw vertices the geometry is made of.
 ///

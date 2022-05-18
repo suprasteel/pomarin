@@ -8,8 +8,6 @@ pub mod assets;
 /// Module defining geometry configuration data
 pub mod geometry;
 /// Module defining asset kind names as strongly typed
-pub mod handles;
-/// Module defining material configuration data
 pub mod material;
 /// Module defining mesh configuration data
 pub mod mesh;

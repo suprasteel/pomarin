@@ -1,6 +1,6 @@
 use crate::render::{
     config::{assets::TryAsRef, texture::TextureDescriptor},
-    names::NamedHandle,
+    names::{NamedHandle, TextureName},
     scene::{
         color_material::ColorMaterial, material::Material, texture::Texture,
         texture_material::TextureMaterial,
@@ -11,7 +11,7 @@ use anyhow::Result;
 use serde::Deserialize;
 use std::{ops::Deref, rc::Rc};
 
-use super::{handles::TextureName, WgpuResourceLoader};
+use super::WgpuResourceLoader;
 
 #[derive(Deserialize, Debug)]
 pub enum MaterialDescriptor {
@@ -90,7 +90,7 @@ pub struct TextureMaterialDescriptor {
     pub normal_texture: TextureName,
 }
 
-//TODO: delete after made better
+//TODO: delete after having a better way to test
 impl TextureMaterialDescriptor {
     pub fn _new_(name: String, diffuse_texture: TextureName, normal_texture: TextureName) -> Self {
         Self {

@@ -137,7 +137,6 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     //let result = (specular_color); // * object_color.xyz;
 
 // FIX: alpha
-    return vec4<f32>(result, 0.5); //object_color.a);
-
+    return vec4<f32>(result, object_color.a);
 }
 
