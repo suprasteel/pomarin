@@ -54,6 +54,9 @@ pub trait NamedHandle<H> {
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
+pub struct ObjectName(String);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
 pub struct GeometryName(String);
 
 #[derive(Deserialize, Serialize, Debug, Eq, Ord, PartialEq, PartialOrd, Clone, Hash)]

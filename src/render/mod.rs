@@ -14,5 +14,3 @@ pub mod scene;
 pub mod error;
 pub mod names;
 pub mod state;
-
-mod test;

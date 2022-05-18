@@ -24,6 +24,10 @@ impl Object {
         }
     }
 
+    pub fn set_position(&mut self, position: (f32, f32, f32)) {
+        self.position = cgmath::Vector3::new(position.0, position.1, position.2);
+    }
+
     pub fn name(&self) -> String {
         self.name.clone()
     }

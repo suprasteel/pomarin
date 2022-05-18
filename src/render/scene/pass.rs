@@ -54,11 +54,15 @@ impl ScenePass {
     pub fn new(wgpu: &WgpuState, _window: &Window, event_loop: &EventLoop<PomarinEvent>) -> Self {
         let _emitter = Arc::new(Emitter::new(event_loop));
 
+        let mut z2 = Object::new("z2".to_string(), ModelName::from("texture_zod"));
+        z2.set_position((10.0, 0.0, 10.0));
+
         let mut objects_desc = vec![];
         objects_desc.push(Object::new(
             "zodiac".to_string(),
             ModelName::from("color_zod"),
         ));
+        objects_desc.push(z2);
         objects_desc.push(Object::new(
             "sea".to_string(),
             ModelName::from("sea_square"),
@@ -97,6 +101,7 @@ impl ScenePass {
         wgpu.store.add_pipeline(Rc::new(textured_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(colored_model_pipeline));
         wgpu.store.add_pipeline(Rc::new(light_pipeline));
+        // TODO: terrain pipeline to colr according to height
 
         let mut objects = vec![];
 

@@ -40,7 +40,6 @@ where
     ) {
         let mut offset = 0;
         for model in models {
-            //dbg!(&entity.as_ref());
             self.draw_model(model, offset, camera_bg, light_bg);
             offset += 1; //model.as_ref().instances_count();
         }
