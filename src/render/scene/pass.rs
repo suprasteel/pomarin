@@ -57,20 +57,17 @@ impl ScenePass {
         let mut z2 = Object::new("z2".to_string(), ModelName::from("texture_zod"));
         z2.set_position((10.0, 0.0, 10.0));
 
+        let sea = Object::new("sea".to_string(), ModelName::from("sea_square"));
+        let terrian = Object::new("surface".to_string(), ModelName::from("fake_terrain"));
+
         let mut objects_desc = vec![];
         objects_desc.push(Object::new(
             "zodiac".to_string(),
             ModelName::from("color_zod"),
         ));
+        objects_desc.push(terrian);
+        objects_desc.push(sea);
         objects_desc.push(z2);
-        objects_desc.push(Object::new(
-            "sea".to_string(),
-            ModelName::from("sea_square"),
-        ));
-        objects_desc.push(Object::new(
-            "surface".to_string(),
-            ModelName::from("fake_terrain"),
-        ));
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
         let (light_bgl, light_system) =
