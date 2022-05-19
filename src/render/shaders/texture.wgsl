@@ -83,7 +83,6 @@ fn vs_main(
     out.clip_position = camera.view_proj * world_position;
     out.tex_coords = model.tex_coords;
     out.tangent_normal = tangent_matrix * model.normal;
-    // = tangent_matrix * model.normal; // UPDATED!
     out.tangent_position = tangent_matrix * world_position.xyz;
     out.tangent_view_position = tangent_matrix * camera.view_pos.xyz;
     out.tangent_light_position = tangent_matrix * light.position;
@@ -104,11 +103,6 @@ var s_normal: sampler;
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-
-    // return vec4<f32>(specular_color, object_color.a);
-    // return vec4<f32>(ambient_color, object_color.a);
-    // return vec4<f32>(diffuse_color, object_color.a);
-    // return object_color;
 
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     
@@ -134,9 +128,7 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let specular_color = specular_strength * light.color;
 
     let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
-    //let result = (specular_color); // * object_color.xyz;
 
-// FIX: alpha
     return vec4<f32>(result, object_color.a);
 }
 
