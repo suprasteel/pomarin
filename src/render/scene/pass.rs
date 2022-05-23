@@ -57,17 +57,21 @@ impl ScenePass {
         let mut z2 = Object::new("z2".to_string(), ModelName::from("texture_zod"));
         z2.set_position((10.0, 0.0, 10.0));
 
+        let mut sailor = Object::new("sailboat".to_string(), ModelName::from("sailboat"));
+        sailor.set_position((-10.0, 0.0, -10.0));
+
         let sea = Object::new("sea".to_string(), ModelName::from("sea_square"));
-        let terrian = Object::new("surface".to_string(), ModelName::from("fake_terrain"));
+        let terrain = Object::new("surface".to_string(), ModelName::from("fake_terrain"));
 
         let mut objects_desc = vec![];
         objects_desc.push(Object::new(
             "zodiac".to_string(),
             ModelName::from("color_zod"),
         ));
-        objects_desc.push(terrian);
-        objects_desc.push(sea);
         objects_desc.push(z2);
+        objects_desc.push(sailor);
+        objects_desc.push(terrain);
+        objects_desc.push(sea);
 
         let mut instances_system: InstancesSystem<InstanceRaw> = InstancesSystem::new(&wgpu.device);
         let (light_bgl, light_system) =
@@ -103,12 +107,14 @@ impl ScenePass {
         let mut objects = vec![];
 
         objects_desc.into_iter().for_each(|object| {
+            let model_name = object.model().clone();
             wgpu.assets
                 .find(object.model())
-                .ok_or(anyhow!("obj asset model not found"))
+                .ok_or(anyhow!("obj asset model {} not found", model_name))
                 .and_then(|model: &AssetDescriptor| model.try_as_ref())
                 .and_then(|zd: &ModelDescriptor| zd.load(wgpu))
                 .and_then(|model| {
+                    log::debug!(target: "debug", "getting model {}", model_name);
                     instances_system
                         .set_instances_raw(vec![InstanceRaw::from(&object)], &wgpu.queue);
                     objects.push(LinkedObject { object, model });
@@ -116,7 +122,9 @@ impl ScenePass {
                 })
                 .err()
                 .iter()
-                .for_each(|e| log::warn!("Failed while trying to load object: {}", e));
+                .for_each(
+                    |e| log::warn!(target: "scene", "Failed while to load object {} : {}", model_name, e),
+                );
         });
 
         Self {

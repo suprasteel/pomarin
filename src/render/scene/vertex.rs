@@ -48,8 +48,20 @@ impl ModelVertex {
     }
 
     pub fn fill_vertices_from_model(vertices: &mut Vec<Self>, model: &tobj::Model) {
-        log::debug!("mesh : {}", model.name);
+        log::debug!(target: "vertices", "Filling bitangent and tangent for mesh {}", model.name);
         let mesh = &model.mesh;
+
+        log::debug!(target: "vertices", "{} pos, {} textcoord, {} normals", 
+                    mesh.positions.len(), mesh.texcoords.len(), mesh.normals.len());
+        assert!(
+            mesh.positions.len() == mesh.normals.len(),
+            "the number of positions and normals are not matching"
+        );
+        assert!(
+            mesh.positions.len() / 3 == mesh.texcoords.len() / 2,
+            "the number of positions and texture coordinates are not matching"
+        );
+        // TODO: make without missing data (default values)
         for i in 0..mesh.positions.len() / 3 {
             vertices.push(ModelVertex {
                 position: [

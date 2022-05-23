@@ -80,7 +80,10 @@ impl WgpuResourceLoader for MeshDescriptor {
                 if self.geometries_names().contains(&gv.name()) {
                     Ok(gv.to_wgpu_geometry_buffer(&wgpu_state.device))
                 } else {
-                    Err(anyhow!("Expected geometry does not match file loaded"))
+                    Err(anyhow!(
+                        "Expected geometry does not match loaded file: {}",
+                        gv.name().to_string()
+                    ))
                 }
             })
             .collect::<Result<Vec<_>, _>>()?;

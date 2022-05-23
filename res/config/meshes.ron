@@ -1,5 +1,14 @@
 [
     (
+        name:"sailboat_monohull",
+        source:Obj("sail_001.obj"),
+        geometries:[
+            (name:"hull"),
+            (name:"mast"),
+            (name:"sail")
+        ]
+    ),
+    (
         name:"zodiac",
         source:Obj("zodiac_001.obj"),
         geometries:[

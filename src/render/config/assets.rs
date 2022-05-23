@@ -40,15 +40,19 @@ impl AssetsDescriptors {
         let descriptor = descriptor.into();
         match descriptor {
             AssetDescriptor::Texture(ref t) => {
+                log::debug!(target: "assets", "Adding {} to assets descriptors list", descriptor);
                 self.0.insert(AssetName::Texture(t.name()), descriptor);
             }
             AssetDescriptor::Material(ref mat) => {
+                log::debug!(target: "assets", "Adding {} to assets descriptors list", descriptor);
                 self.0.insert(AssetName::Material(mat.name()), descriptor);
             }
             AssetDescriptor::Mesh(ref mesh) => {
+                log::debug!(target: "assets", "Adding {} to assets descriptors list", descriptor);
                 self.0.insert(AssetName::Mesh(mesh.name()), descriptor);
             }
             AssetDescriptor::Model(ref model) => {
+                log::debug!(target: "assets", "Adding {} to assets descriptors list", descriptor);
                 self.0.insert(AssetName::Model(model.name()), descriptor);
             }
         }

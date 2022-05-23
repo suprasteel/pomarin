@@ -1,5 +1,15 @@
 [
     (
+        name:"sailboat",
+        mesh:("sailboat_monohull"),
+        geometries_materials:[
+            (("hull"),("glossy_red")),
+            (("sail"),("white")),
+            (("mast"),("carbon_fiber"))
+        ],
+        pipeline_name:"colors_pipeline"
+    ),
+    (
         name:"texture_zod",
         mesh:("zodiac"),
         geometries_materials:[
